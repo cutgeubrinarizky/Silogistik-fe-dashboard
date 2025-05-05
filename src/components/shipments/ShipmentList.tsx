@@ -104,13 +104,13 @@ const shipments = [
 const getStatusBadge = (status: string) => {
   switch(status) {
     case 'pickup':
-      return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 font-medium px-3 py-1 rounded-full">Pickup</Badge>;
+      return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">Pickup</Badge>;
     case 'transit':
-      return <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 font-medium px-3 py-1 rounded-full">Dalam Perjalanan</Badge>;
+      return <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">Dalam Perjalanan</Badge>;
     case 'delivered':
-      return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 font-medium px-3 py-1 rounded-full">Terkirim</Badge>;
+      return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Terkirim</Badge>;
     case 'failed':
-      return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 font-medium px-3 py-1 rounded-full">Gagal</Badge>;
+      return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Gagal</Badge>;
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
@@ -124,33 +124,33 @@ const ShipmentList = () => {
   });
 
   return (
-    <Card className="border-0 shadow-card overflow-hidden">
-      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 space-y-4 sm:space-y-0 border-b">
+    <Card>
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 space-y-4 sm:space-y-0">
         <CardTitle>Daftar Pengiriman</CardTitle>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm" className="h-9 border-gray-200 hover:border-gray-300 hover:bg-gray-50">
-            <Filter size={16} className="mr-2 text-gray-500" />
+          <Button variant="outline" size="sm" className="h-9">
+            <Filter size={16} className="mr-2" />
             Filter
           </Button>
-          <Button variant="outline" size="sm" className="h-9 border-gray-200 hover:border-gray-300 hover:bg-gray-50">
-            <RefreshCcw size={16} className="mr-2 text-gray-500" />
+          <Button variant="outline" size="sm" className="h-9">
+            <RefreshCcw size={16} className="mr-2" />
             Refresh
           </Button>
-          <Button size="sm" className="h-9 bg-modern-primary hover:bg-modern-primary/90" asChild>
+          <Button size="sm" className="h-9" asChild>
             <Link to="/shipments/new">
               + Pengiriman Baru
             </Link>
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="flex flex-col gap-4 p-6">
+      <CardContent>
+        <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
-              <Input placeholder="Cari nomor resi atau nama..." className="border-gray-200 focus:border-modern-primary" />
+              <Input placeholder="Cari nomor resi atau nama..." />
             </div>
             <Select value={filter.status} onValueChange={(value) => setFilter(prev => ({ ...prev, status: value }))}>
-              <SelectTrigger className="w-[180px] border-gray-200 bg-white">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -162,7 +162,7 @@ const ShipmentList = () => {
               </SelectContent>
             </Select>
             <Select value={filter.type} onValueChange={(value) => setFilter(prev => ({ ...prev, type: value }))}>
-              <SelectTrigger className="w-[180px] border-gray-200 bg-white">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Jenis Pengiriman" />
               </SelectTrigger>
               <SelectContent>
@@ -173,18 +173,18 @@ const ShipmentList = () => {
             </Select>
           </div>
 
-          <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
+          <div className="rounded-md border">
             <Table>
-              <TableHeader className="bg-gray-50">
+              <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px] font-medium">No. Resi</TableHead>
-                  <TableHead className="font-medium">Penerima</TableHead>
-                  <TableHead className="font-medium">Status</TableHead>
-                  <TableHead className="font-medium">Kurir</TableHead>
-                  <TableHead className="font-medium">Berat Final</TableHead>
-                  <TableHead className="font-medium">Ongkir</TableHead>
-                  <TableHead className="font-medium">Tanggal</TableHead>
-                  <TableHead className="text-right font-medium">Aksi</TableHead>
+                  <TableHead className="w-[100px]">No. Resi</TableHead>
+                  <TableHead>Penerima</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Kurir</TableHead>
+                  <TableHead>Berat Final</TableHead>
+                  <TableHead>Ongkir</TableHead>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -23,20 +23,18 @@ const StatCard: React.FC<StatCardProps> = ({
   className,
 }) => {
   return (
-    <Card className={cn("overflow-hidden border-0 shadow-card hover:shadow-lg transition-all duration-300", className)}>
+    <Card className={cn("overflow-hidden", className)}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
-            <h3 className="text-2xl font-bold mt-2">{value}</h3>
-            {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <h3 className="text-2xl font-bold mt-1">{value}</h3>
+            {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
             
             {trend !== undefined && (
               <div className={cn(
-                "flex items-center mt-3 text-xs font-medium rounded-full px-2 py-0.5 w-fit",
-                trend > 0 ? "bg-green-50 text-green-600" : 
-                trend < 0 ? "bg-red-50 text-red-600" : 
-                "bg-gray-50 text-gray-600"
+                "flex items-center mt-2 text-xs font-medium",
+                trend > 0 ? "text-green-500" : trend < 0 ? "text-red-500" : "text-gray-500"
               )}>
                 <span>
                   {trend > 0 ? '↑' : trend < 0 ? '↓' : '•'}
@@ -48,7 +46,7 @@ const StatCard: React.FC<StatCardProps> = ({
             )}
           </div>
           
-          <div className="p-2.5 bg-gradient-to-br from-modern-primary to-modern-accent rounded-xl text-white">
+          <div className="p-2 bg-logistics-50 rounded-md text-logistics-600">
             {icon}
           </div>
         </div>

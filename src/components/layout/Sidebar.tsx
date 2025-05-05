@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Package, 
@@ -9,9 +9,9 @@ import {
   FileText, 
   BarChart, 
   Users, 
+  Bell, 
   LogOut,
-  Menu,
-  X
+  Menu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,6 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
-  const location = useLocation();
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Package, label: 'Pengiriman', path: '/shipments' },
@@ -33,56 +32,40 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
     { icon: Users, label: 'Pengguna', path: '/users' },
   ];
 
-  const isActive = (path: string) => {
-    if (path === '/') return location.pathname === path;
-    return location.pathname.startsWith(path);
-  };
-
   return (
     <div
       className={cn(
-        "fixed h-screen bg-white border-r border-gray-100 transition-all duration-300 z-40 flex flex-col shadow-md",
-        collapsed ? "w-0 md:w-[70px] -translate-x-full md:translate-x-0" : "w-[250px]"
+        "h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
+        collapsed ? "w-[70px]" : "w-[250px]"
       )}
     >
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-gray-100">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
         {!collapsed && (
-          <div className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-purple-700">CargoPilot</div>
+          <div className="font-bold text-xl text-logistics-700">CargoPilot</div>
         )}
         <Button 
           variant="ghost" 
           size="icon" 
-          className={cn(
-            "ml-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100",
-            collapsed && "hidden md:flex"
-          )}
+          className="ml-auto" 
           onClick={() => setCollapsed(!collapsed)}
         >
-          {collapsed ? <Menu size={20} /> : <X size={20} />}
+          <Menu size={20} />
         </Button>
       </div>
 
-      <div className="flex-grow py-3 overflow-y-auto scrollbar-thin">
+      <div className="flex-grow py-5">
         <nav>
-          <ul className="space-y-1 px-2">
+          <ul className="space-y-2 px-2">
             {navItems.map((item) => (
               <li key={item.label}>
                 <Link
                   to={item.path}
                   className={cn(
-                    "flex items-center px-3 py-2.5 rounded-xl text-gray-700 transition-all duration-200",
-                    isActive(item.path) 
-                      ? "bg-violet-500/10 text-violet-600 font-medium" 
-                      : "hover:bg-gray-50 hover:text-violet-600"
+                    "flex items-center px-3 py-2.5 rounded-md text-gray-700 hover:bg-logistics-50 hover:text-logistics-600 transition-colors",
+                    "hover:bg-logistics-50 hover:text-logistics-600"
                   )}
                 >
-                  <item.icon 
-                    size={24} 
-                    className={cn(
-                      "flex-shrink-0", 
-                      isActive(item.path) ? "text-violet-600" : "text-gray-500"
-                    )} 
-                  />
+                  <item.icon size={20} className="flex-shrink-0" />
                   {!collapsed && <span className="ml-3">{item.label}</span>}
                 </Link>
               </li>
@@ -91,9 +74,9 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-gray-100">
+      <div className="p-4 border-t border-gray-200">
         <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold">
+          <div className="w-8 h-8 rounded-full bg-logistics-100 flex items-center justify-center text-logistics-700 font-bold">
             A
           </div>
           {!collapsed && (
