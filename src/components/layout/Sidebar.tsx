@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Package, 
@@ -9,7 +9,6 @@ import {
   FileText, 
   BarChart, 
   Users, 
-  Bell, 
   LogOut,
   Menu
 } from 'lucide-react';
@@ -22,6 +21,7 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
+  const location = useLocation();
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Package, label: 'Pengiriman', path: '/shipments' },
@@ -32,40 +32,53 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
     { icon: Users, label: 'Pengguna', path: '/users' },
   ];
 
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === path;
+    return location.pathname.startsWith(path);
+  };
+
   return (
     <div
       className={cn(
-        "h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
+        "h-screen bg-white border-r border-gray-100 transition-all duration-300 flex flex-col shadow-sm",
         collapsed ? "w-[70px]" : "w-[250px]"
       )}
     >
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-gray-100">
         {!collapsed && (
-          <div className="font-bold text-xl text-logistics-700">CargoPilot</div>
+          <div className="font-bold text-xl text-gradient">CargoPilot</div>
         )}
         <Button 
           variant="ghost" 
           size="icon" 
-          className="ml-auto" 
+          className="ml-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100" 
           onClick={() => setCollapsed(!collapsed)}
         >
           <Menu size={20} />
         </Button>
       </div>
 
-      <div className="flex-grow py-5">
+      <div className="flex-grow py-5 overflow-y-auto scrollbar-thin">
         <nav>
-          <ul className="space-y-2 px-2">
+          <ul className="space-y-1 px-2">
             {navItems.map((item) => (
               <li key={item.label}>
                 <Link
                   to={item.path}
                   className={cn(
-                    "flex items-center px-3 py-2.5 rounded-md text-gray-700 hover:bg-logistics-50 hover:text-logistics-600 transition-colors",
-                    "hover:bg-logistics-50 hover:text-logistics-600"
+                    "flex items-center px-3 py-2.5 rounded-xl text-gray-700 transition-all duration-200",
+                    isActive(item.path) 
+                      ? "bg-modern-primary/10 text-modern-primary font-medium" 
+                      : "hover:bg-gray-50 hover:text-modern-primary"
                   )}
                 >
-                  <item.icon size={20} className="flex-shrink-0" />
+                  <item.icon 
+                    size={20} 
+                    className={cn(
+                      "flex-shrink-0", 
+                      isActive(item.path) ? "text-modern-primary" : "text-gray-500"
+                    )} 
+                  />
                   {!collapsed && <span className="ml-3">{item.label}</span>}
                 </Link>
               </li>
@@ -74,9 +87,9 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-100">
         <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-logistics-100 flex items-center justify-center text-logistics-700 font-bold">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-modern-primary to-modern-accent flex items-center justify-center text-white font-bold">
             A
           </div>
           {!collapsed && (
