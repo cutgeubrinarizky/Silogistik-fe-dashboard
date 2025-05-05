@@ -10,7 +10,8 @@ import {
   BarChart, 
   Users, 
   LogOut,
-  Menu
+  Menu,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -40,25 +41,28 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
   return (
     <div
       className={cn(
-        "h-screen bg-white border-r border-gray-100 transition-all duration-300 flex flex-col shadow-sm",
-        collapsed ? "w-[70px]" : "w-[250px]"
+        "fixed h-screen bg-white border-r border-gray-100 transition-all duration-300 z-40 flex flex-col shadow-md",
+        collapsed ? "w-0 md:w-[70px] -translate-x-full md:translate-x-0" : "w-[250px]"
       )}
     >
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-gray-100">
         {!collapsed && (
-          <div className="font-bold text-xl text-gradient">CargoPilot</div>
+          <div className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-purple-700">CargoPilot</div>
         )}
         <Button 
           variant="ghost" 
           size="icon" 
-          className="ml-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100" 
+          className={cn(
+            "ml-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100",
+            collapsed && "hidden md:flex"
+          )}
           onClick={() => setCollapsed(!collapsed)}
         >
-          <Menu size={20} />
+          {collapsed ? <Menu size={20} /> : <X size={20} />}
         </Button>
       </div>
 
-      <div className="flex-grow py-5 overflow-y-auto scrollbar-thin">
+      <div className="flex-grow py-3 overflow-y-auto scrollbar-thin">
         <nav>
           <ul className="space-y-1 px-2">
             {navItems.map((item) => (
@@ -68,15 +72,15 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
                   className={cn(
                     "flex items-center px-3 py-2.5 rounded-xl text-gray-700 transition-all duration-200",
                     isActive(item.path) 
-                      ? "bg-modern-primary/10 text-modern-primary font-medium" 
-                      : "hover:bg-gray-50 hover:text-modern-primary"
+                      ? "bg-violet-500/10 text-violet-600 font-medium" 
+                      : "hover:bg-gray-50 hover:text-violet-600"
                   )}
                 >
                   <item.icon 
-                    size={20} 
+                    size={24} 
                     className={cn(
                       "flex-shrink-0", 
-                      isActive(item.path) ? "text-modern-primary" : "text-gray-500"
+                      isActive(item.path) ? "text-violet-600" : "text-gray-500"
                     )} 
                   />
                   {!collapsed && <span className="ml-3">{item.label}</span>}
@@ -89,7 +93,7 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
 
       <div className="p-4 border-t border-gray-100">
         <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-modern-primary to-modern-accent flex items-center justify-center text-white font-bold">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold">
             A
           </div>
           {!collapsed && (
