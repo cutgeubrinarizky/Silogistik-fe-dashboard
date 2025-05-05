@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -264,7 +263,7 @@ const Users = () => {
                   <SelectValue placeholder="Filter Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Semua Role</SelectItem>
+                  <SelectItem value="all">Semua Role</SelectItem>
                   <SelectItem value="super_admin">Super Admin</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="viewer">Viewer</SelectItem>

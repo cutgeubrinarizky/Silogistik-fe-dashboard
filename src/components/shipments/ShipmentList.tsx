@@ -154,7 +154,7 @@ const ShipmentList = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Semua Status</SelectItem>
+                <SelectItem value="all">Semua Status</SelectItem>
                 <SelectItem value="pickup">Pickup</SelectItem>
                 <SelectItem value="transit">Dalam Perjalanan</SelectItem>
                 <SelectItem value="delivered">Terkirim</SelectItem>
@@ -166,7 +166,7 @@ const ShipmentList = () => {
                 <SelectValue placeholder="Jenis Pengiriman" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Semua Jenis</SelectItem>
+                <SelectItem value="all">Semua Jenis</SelectItem>
                 <SelectItem value="pickup">Pickup</SelectItem>
                 <SelectItem value="dropoff">Drop-off</SelectItem>
               </SelectContent>
