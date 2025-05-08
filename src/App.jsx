@@ -6,12 +6,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import Shipments from "./pages/Shipments";
+import ShipmentForm from "./components/shipments/ShipmentForm";
 import Couriers from "./pages/Couriers";
 import Labels from "./pages/Labels";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
+import ShippingRates from "./pages/ShippingRates";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +26,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Layout><Dashboard /></Layout>} />
           <Route path="/shipments" element={<Layout><Shipments /></Layout>} />
-          <Route path="/shipments/new" element={<Layout><Shipments /></Layout>} />
+          <Route path="/shipments/new" element={<Layout><ShipmentForm /></Layout>} />
+          <Route path="/shipping-rates" element={<Layout><ShippingRates /></Layout>} />
           <Route path="/couriers" element={<Layout><Couriers /></Layout>} />
           <Route path="/labels" element={<Layout><Labels /></Layout>} />
           <Route path="/reports" element={<Layout><Reports /></Layout>} />

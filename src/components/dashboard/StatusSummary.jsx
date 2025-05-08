@@ -16,7 +16,7 @@ const StatusSummary = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium">Status Pengiriman</CardTitle>
+        <CardTitle className="text-lg font-bold text-[#0C4A6E]">Status Pengiriman</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

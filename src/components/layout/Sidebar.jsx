@@ -10,7 +10,8 @@ import {
   Users, 
   Bell, 
   LogOut,
-  Menu
+  Menu,
+  Banknote
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const navItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/' },
     { icon: <Package size={20} />, label: 'Pengiriman', path: '/shipments' },
+    { icon: <Banknote size={20} />, label: 'Manajemen Ongkir', path: '/shipping-rates' },
     { icon: <Users size={20} />, label: 'Kurir', path: '/couriers' },
     { icon: <FileText size={20} />, label: 'Label & Invoice', path: '/labels' },
     { icon: <BarChart size={20} />, label: 'Laporan', path: '/reports' },
@@ -28,12 +30,15 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
   return (
     <div className={cn(
-      "h-screen transition-all border-r bg-sidebar text-sidebar-foreground", 
+      "h-screen transition-all border-r bg-white text-[#0C4A6E]", 
       collapsed ? "w-16" : "w-64"
     )}>
       <div className="flex items-center justify-between h-16 px-4">
         {!collapsed && (
-          <div className="font-bold text-xl">CargoPilot</div>
+          <div className="flex items-center gap-2">
+            <img src="/images/logosilogistik.png" alt="Logo Silogistik" className="h-8 w-auto" />
+            {/* <span className="font-bold text-xl text-[#0ea5e9]">Silogistik</span> */}
+          </div>
         )}
         <Button 
           variant="ghost" 

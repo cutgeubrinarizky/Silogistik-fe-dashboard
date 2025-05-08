@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -51,6 +53,50 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-[#f8fafc] text-[#22223b];
+  }
+
+  .card, .bg-card {
+    @apply bg-white border border-[#e5e7eb] rounded-xl shadow-md;
+  }
+
+  .btn-primary, .bg-primary {
+    @apply bg-[#0ea5e9] text-white rounded-lg shadow hover:bg-[#0369a1] transition;
+  }
+
+  .btn-outline {
+    @apply border border-[#0ea5e9] text-[#0ea5e9] bg-white rounded-lg hover:bg-[#e0f2fe] transition;
+  }
+
+  .sidebar {
+    @apply bg-[#e0f2fe] text-[#0369a1];
+  }
+
+  .header {
+    @apply bg-white border-b border-[#e5e7eb] shadow-sm;
+  }
+
+  .table th, .table td {
+    @apply px-4 py-2;
+  }
+
+  .table thead {
+    @apply bg-[#f0f9ff];
+  }
+
+  .table tbody tr {
+    @apply hover:bg-[#f0f9ff] transition;
+  }
+
+  .input, input, textarea, select {
+    @apply border border-[#e5e7eb] rounded-md focus:border-[#0ea5e9] focus:ring-[#0ea5e9] transition;
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -93,9 +139,5 @@
 @layer base {
   * {
     @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
   }
 }
