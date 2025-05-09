@@ -1,9 +1,60 @@
-import React from 'react';
-import { Bell, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from "react";
+import { Bell, Search, User, LogOut, Settings } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Header = ({ onMenuClick }) => {
+  const navigate = useNavigate();
+  const [userName, setUserName] = useState("User");
+  const [userInitials, setUserInitials] = useState("U");
+
+  useEffect(() => {
+    // Coba dapatkan data user dari localStorage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        if (userData.user_metadata?.full_name) {
+          setUserName(userData.user_metadata.full_name);
+
+          // Buat inisial dari nama
+          const names = userData.user_metadata.full_name.split(" ");
+          if (names.length > 1) {
+            setUserInitials(`${names[0][0]}${names[1][0]}`);
+          } else if (names.length === 1) {
+            setUserInitials(names[0][0]);
+          }
+        } else if (userData.email) {
+          setUserName(userData.email);
+          setUserInitials(userData.email[0]);
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    // Hapus semua data autentikasi dari localStorage
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("expires_at");
+    localStorage.removeItem("user");
+
+    toast.success("Berhasil logout");
+    navigate("/login");
+  };
+
   return (
     <header className="border-b bg-background h-16 px-4 flex items-center justify-between">
       <div className="flex items-center md:w-72">
@@ -16,12 +67,50 @@ const Header = ({ onMenuClick }) => {
           />
         </div>
       </div>
-      
-      <div className="flex items-center gap-2">
+
+      <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" className="relative">
           <Bell size={20} />
           <span className="absolute h-2 w-2 top-1.5 right-1.5 bg-rose-500 rounded-full" />
         </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-[#0C4A6E] text-white">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <div className="flex items-center justify-start gap-2 p-2">
+              <div className="flex flex-col space-y-1 leading-none">
+                <p className="font-medium text-sm text-[#0C4A6E]">{userName}</p>
+                <p className="w-[200px] truncate text-xs text-[#0C4A6E]/70">
+                  {/* Tambahkan detail yang sesuai, misalnya: */}
+                  Administrator
+                </p>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => navigate("/settings")}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Pengaturan</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer text-red-600 focus:text-red-600"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

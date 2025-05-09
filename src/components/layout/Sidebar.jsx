@@ -1,47 +1,87 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Package, 
-  Settings, 
-  UserRound, 
-  FileText, 
-  BarChart, 
-  Users, 
-  Bell, 
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Package,
+  Settings,
+  UserRound,
+  FileText,
+  BarChart,
+  Users,
+  Bell,
   LogOut,
   Menu,
-  Banknote
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+  Banknote,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
+  const [userRoleId, setUserRoleId] = useState(null);
+  const navigate = useNavigate();
+
+  // Effect untuk mendapatkan role_id dari localStorage
+  useEffect(() => {
+    try {
+      const tenantInfo = localStorage.getItem("tenant_info");
+      if (tenantInfo) {
+        const parsedInfo = JSON.parse(tenantInfo);
+        setUserRoleId(parsedInfo.role_id);
+      }
+    } catch (error) {
+      console.error("Error parsing tenant info:", error);
+    }
+  }, []);
+
+  // Menu item untuk semua user
+  const baseNavItems = [
+    { icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/" },
+    { icon: <Package size={20} />, label: "Pengiriman", path: "/shipments" },
+    {
+      icon: <Banknote size={20} />,
+      label: "Manajemen Ongkir",
+      path: "/shipping-rates",
+    },
+  ];
+
+  // Menu item hanya untuk admin (role_id 1 atau 2)
+  const adminNavItems = [
+    { icon: <Users size={20} />, label: "Kurir", path: "/couriers" },
+    { icon: <FileText size={20} />, label: "Label & Invoice", path: "/labels" },
+    { icon: <BarChart size={20} />, label: "Laporan", path: "/reports" },
+    { icon: <Settings size={20} />, label: "Pengaturan", path: "/settings" },
+    { icon: <UserRound size={20} />, label: "Pengguna", path: "/users" },
+  ];
+
+  // Gabungkan menu item sesuai dengan role
   const navItems = [
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/' },
-    { icon: <Package size={20} />, label: 'Pengiriman', path: '/shipments' },
-    { icon: <Banknote size={20} />, label: 'Manajemen Ongkir', path: '/shipping-rates' },
-    { icon: <Users size={20} />, label: 'Kurir', path: '/couriers' },
-    { icon: <FileText size={20} />, label: 'Label & Invoice', path: '/labels' },
-    { icon: <BarChart size={20} />, label: 'Laporan', path: '/reports' },
-    { icon: <Settings size={20} />, label: 'Pengaturan', path: '/settings' },
-    { icon: <UserRound size={20} />, label: 'Pengguna', path: '/users' },
+    ...baseNavItems,
+    ...(userRoleId === 1 || userRoleId === 2 ? adminNavItems : []),
   ];
 
   return (
-    <div className={cn(
-      "h-screen transition-all border-r bg-white text-[#0C4A6E]", 
-      collapsed ? "w-16" : "w-64"
-    )}>
+    <div
+      className={cn(
+        "h-screen transition-all border-r bg-white text-[#0C4A6E]",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
       <div className="flex items-center justify-between h-16 px-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <img src="/images/logosilogistik.png" alt="Logo Silogistik" className="h-8 w-auto" />
-            {/* <span className="font-bold text-xl text-[#0ea5e9]">Silogistik</span> */}
+            <img
+              src="/images/logosilogistik.png"
+              alt="Logo Silogistik"
+              className="h-8 w-auto"
+              onError={(e) => {
+                e.target.src =
+                  "https://placehold.co/160x40/FF6B2C/white?text=SiLogistik";
+              }}
+            />
           </div>
         )}
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon"
           onClick={() => setCollapsed && setCollapsed(!collapsed)}
         >
@@ -52,10 +92,10 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       <div className="py-4">
         <nav className="space-y-1 px-2">
           {navItems.map((item, index) => (
-            <Link 
+            <Link
               key={index}
-              to={item.path} 
-              className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-sidebar-accent"
+              to={item.path}
+              className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-slate-100"
             >
               <span>{item.icon}</span>
               {!collapsed && <span>{item.label}</span>}
@@ -66,13 +106,15 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
       <div className="absolute bottom-4 w-full px-4">
         <div className="flex items-center gap-3 p-2">
-          <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
             A
           </div>
           {!collapsed && (
             <div className="flex flex-col">
               <span className="font-medium">Admin User</span>
-              <span className="text-xs text-sidebar-foreground/70">admin@cargopilot.com</span>
+              <span className="text-xs text-[#0C4A6E]/70">
+                admin@cargopilot.com
+              </span>
             </div>
           )}
         </div>
