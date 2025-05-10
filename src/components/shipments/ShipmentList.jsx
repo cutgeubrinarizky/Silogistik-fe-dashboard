@@ -50,6 +50,7 @@ import { id } from "date-fns/locale";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import UpdatePaymentModal from "../finance/UpdatePaymentModal";
 
 // Helper function to get status badge
 const getStatusBadge = (status) => {
@@ -277,6 +278,7 @@ const ShipmentList = ({
   onArchive,
   onUpdateStatus,
   onDelete,
+  onUpdatePayment,
 }) => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState({
@@ -287,7 +289,106 @@ const ShipmentList = ({
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [showLabel, setShowLabel] = useState(false);
   const [showUpdateStatus, setShowUpdateStatus] = useState(false);
+  const [showUpdatePayment, setShowUpdatePayment] = useState(false);
   const navigate = useNavigate();
+
+  // Data dummy untuk pengiriman
+  const dummyShipments = [
+    {
+      id: 1,
+      tracking_number: "TRK-2024-001",
+      sender_name: "PT Maju Jaya",
+      recipient_name: "Budi Santoso",
+      sender_city: { name: "Jakarta" },
+      recipient_city: { name: "Bandung" },
+      status: "pickup",
+      total_chargeable_weight: 2.5,
+      courier: { users: { name: "Agus Subagyo" } },
+      created_at: "2024-03-20",
+      final_shipping_cost: 150000,
+      payment_status: "unpaid",
+      service_type: "Regular",
+      items: [
+        { weight: 1.5, quantity: 1 },
+        { weight: 1.0, quantity: 1 }
+      ]
+    },
+    {
+      id: 2,
+      tracking_number: "TRK-2024-002",
+      sender_name: "CV Sejahtera",
+      recipient_name: "Ani Wijaya",
+      sender_city: { name: "Surabaya" },
+      recipient_city: { name: "Malang" },
+      status: "transit",
+      total_chargeable_weight: 3.0,
+      courier: { users: { name: "Budi Santoso" } },
+      created_at: "2024-03-19",
+      final_shipping_cost: 200000,
+      payment_status: "partial",
+      service_type: "Express",
+      items: [
+        { weight: 3.0, quantity: 1 }
+      ]
+    },
+    {
+      id: 3,
+      tracking_number: "TRK-2024-003",
+      sender_name: "UD Makmur",
+      recipient_name: "Dewi Lestari",
+      sender_city: { name: "Yogyakarta" },
+      recipient_city: { name: "Semarang" },
+      status: "delivered",
+      total_chargeable_weight: 1.5,
+      courier: { users: { name: "Citra Dewi" } },
+      created_at: "2024-03-18",
+      final_shipping_cost: 120000,
+      payment_status: "paid",
+      service_type: "Regular",
+      items: [
+        { weight: 1.5, quantity: 1 }
+      ]
+    },
+    {
+      id: 4,
+      tracking_number: "TRK-2024-004",
+      sender_name: "PT Abadi Sentosa",
+      recipient_name: "Rudi Hartono",
+      sender_city: { name: "Medan" },
+      recipient_city: { name: "Palembang" },
+      status: "failed",
+      total_chargeable_weight: 4.0,
+      courier: { users: { name: "Dian Pratama" } },
+      created_at: "2024-03-17",
+      final_shipping_cost: 250000,
+      payment_status: "unpaid",
+      service_type: "Express",
+      items: [
+        { weight: 4.0, quantity: 1 }
+      ]
+    },
+    {
+      id: 5,
+      tracking_number: "TRK-2024-005",
+      sender_name: "CV Berkah",
+      recipient_name: "Siti Aminah",
+      sender_city: { name: "Makassar" },
+      recipient_city: { name: "Manado" },
+      status: "pickup",
+      total_chargeable_weight: 2.0,
+      courier: { users: { name: "Agus Subagyo" } },
+      created_at: "2024-03-16",
+      final_shipping_cost: 180000,
+      payment_status: "unpaid",
+      service_type: "Regular",
+      items: [
+        { weight: 2.0, quantity: 1 }
+      ]
+    }
+  ];
+
+  // Gunakan data dummy jika tidak ada data dari props
+  const shipmentsToDisplay = shipments.length > 0 ? shipments : dummyShipments;
 
   // Debug untuk memeriksa struktur data
   useEffect(() => {
@@ -323,8 +424,15 @@ const ShipmentList = ({
     setShowUpdateStatus(true);
   };
 
-  const handleStatusUpdate = (id, updateData) => {
-    onUpdateStatus(id, updateData.status);
+  const handlePaymentUpdate = (id, updateData) => {
+    onUpdatePayment(id, updateData);
+    toast.success("Pembayaran berhasil diupdate");
+  };
+
+  const handleUpdatePayment = (shipment, e) => {
+    e.stopPropagation();
+    setSelectedShipment(shipment);
+    setShowUpdatePayment(true);
   };
 
   const handleDelete = (id, e) => {
@@ -354,7 +462,7 @@ const ShipmentList = ({
   };
 
   // Ensure shipments is an array
-  const shipmentsArray = Array.isArray(shipments) ? shipments : [];
+  const shipmentsArray = Array.isArray(shipmentsToDisplay) ? shipmentsToDisplay : [];
   console.log("ShipmentList processed shipments:", shipmentsArray);
 
   // Filter shipments berdasarkan search dan filter
@@ -575,6 +683,15 @@ const ShipmentList = ({
                           >
                             <ArrowRightLeft className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-[#FF6B2C] hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/10"
+                            onClick={(e) => handleUpdatePayment(shipment, e)}
+                            title="Update Pembayaran"
+                          >
+                            <PackageCheck className="h-4 w-4" />
+                          </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
@@ -657,7 +774,18 @@ const ShipmentList = ({
             setShowUpdateStatus(false);
             setSelectedShipment(null);
           }}
-          onUpdate={handleStatusUpdate}
+          onUpdate={onUpdateStatus}
+        />
+      )}
+
+      {showUpdatePayment && selectedShipment && (
+        <UpdatePaymentModal
+          shipment={selectedShipment}
+          onClose={() => {
+            setShowUpdatePayment(false);
+            setSelectedShipment(null);
+          }}
+          onUpdate={handlePaymentUpdate}
         />
       )}
     </>

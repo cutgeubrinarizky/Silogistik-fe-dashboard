@@ -371,13 +371,6 @@ const Shipments = () => {
               </p>
             </div>
           </div>
-          <Button
-            className="bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white"
-            onClick={() => navigate("/shipments/new")}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Buat Pengiriman
-          </Button>
         </div>
       </div>
 

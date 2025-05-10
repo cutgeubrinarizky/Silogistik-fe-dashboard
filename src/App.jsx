@@ -7,13 +7,14 @@ import Layout from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import Shipments from "./pages/Shipments";
 import ShipmentForm from "./components/shipments/ShipmentForm";
-import Couriers from "./pages/Couriers";
+import Employees from "./pages/Employees";
 import Labels from "./pages/Labels";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
 import ShippingRates from "./pages/ShippingRates";
+import Finance from "./pages/Finance";
 import Login from "./pages/Login";
 import { useEffect, useState } from "react";
 
@@ -68,91 +69,101 @@ const App = () => {
             <Route
               path="/"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
                     <Dashboard />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
               }
             />
             <Route
               path="/shipments"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
                     <Shipments />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
               }
             />
             <Route
               path="/shipments/new"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
                     <ShipmentForm />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
               }
             />
             <Route
               path="/shipping-rates"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
                     <ShippingRates />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
               }
             />
             <Route
-              path="/couriers"
+              path="/finance"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
-                    <Couriers />
+                    <Finance />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
+              }
+            />
+            <Route
+              path="/employees"
+              element={
+                // <AuthGuard>
+                  <Layout>
+                    <Employees />
+                  </Layout>
+                // </AuthGuard>
               }
             />
             <Route
               path="/labels"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
                     <Labels />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
               }
             />
             <Route
               path="/reports"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
                     <Reports />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
               }
             />
             <Route
               path="/settings"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
                     <Settings />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
               }
             />
             <Route
               path="/users"
               element={
-                <AuthGuard>
+                // <AuthGuard>
                   <Layout>
                     <Users />
                   </Layout>
-                </AuthGuard>
+                // </AuthGuard>
               }
             />
 
