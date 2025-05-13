@@ -134,6 +134,144 @@ const ShipmentService = {
   },
 };
 
+// Service untuk data alamat
+const AddressService = {
+  // Mendapatkan daftar provinsi
+  getProvinces: async () => {
+    const response = await fetch(
+      `${API_BASE_URL}/functions/v1/address/provinces`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Gagal mengambil data provinsi");
+    }
+
+    return response.json();
+  },
+
+  // Mendapatkan daftar kota berdasarkan provinsi
+  getCities: async (province) => {
+    const response = await fetch(
+      `${API_BASE_URL}/functions/v1/address/cities?province=${encodeURIComponent(
+        province
+      )}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Gagal mengambil data kota");
+    }
+
+    return response.json();
+  },
+
+  // Mendapatkan daftar kecamatan berdasarkan kota
+  getDistricts: async (city) => {
+    const response = await fetch(
+      `${API_BASE_URL}/functions/v1/address/districts?city=${encodeURIComponent(
+        city
+      )}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Gagal mengambil data kecamatan");
+    }
+
+    return response.json();
+  },
+};
+
+// Service untuk data Kota
+const CityService = {
+  // Mendapatkan daftar kota yang tersedia di sistem
+  getCities: async (search = "", page = 1, pageSize = 100) => {
+    const params = new URLSearchParams({
+      search,
+      page,
+      pageSize,
+    }).toString();
+
+    const response = await fetch(
+      `${API_BASE_URL}/functions/v1/cities?${params}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Gagal mengambil data kota");
+    }
+
+    return response.json();
+  },
+};
+
+// Service untuk data Pengguna (Kurir & Marketing)
+const UserService = {
+  // Mendapatkan daftar pengguna berdasarkan role
+  getUsersByRole: async (roleId) => {
+    const response = await fetch(
+      `${API_BASE_URL}/functions/v1/users?role_id=${roleId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Gagal mengambil data pengguna");
+    }
+
+    return response.json();
+  },
+};
+
+// Service untuk tarif pengiriman
+const ShippingRateService = {
+  // Mendapatkan tarif berdasarkan kota asal dan tujuan
+  getRate: async (originCityId, destinationCityId) => {
+    const response = await fetch(
+      `${API_BASE_URL}/functions/v1/shipping_rates?origin_city_id=${originCityId}&destination_city_id=${destinationCityId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      // Mungkin tarif tidak ditemukan, tapi ini bukan error fatal
+      if (response.status === 404) {
+        return { success: false, data: null };
+      }
+      throw new Error("Gagal mengambil data tarif pengiriman");
+    }
+
+    return response.json();
+  },
+};
+
+// Role ID untuk Kurir dan Marketing
+const COURIER_ROLE_ID = 3;
+const MARKETING_ROLE_ID = 4;
+
 // Data tarif pengiriman (contoh)
 const shippingRates = [
   { id: 1, origin: "Jakarta", destination: "Surabaya", price: 15000 },
@@ -156,117 +294,31 @@ const ShipmentForm = () => {
   const defaultSender = {
     name: "",
     phone: "",
-    address: { province: "", city: "", district: "" },
+    address: { province: "", city: "", district: "", city_id: null },
   };
   const defaultRecipient = {
     name: "",
     phone: "",
-    address: { province: "", city: "", district: "", street: "" },
+    address: {
+      province: "",
+      city: "",
+      district: "",
+      street: "",
+      city_id: null,
+    },
   };
 
-  // Fetch shipment data if editing
-  const {
-    data: fetchedShipment,
-    isLoading: isLoadingShipment,
-    error: shipmentError,
-  } = useQuery({
-    queryKey: ["shipment", shipmentId],
-    queryFn: () => ShipmentService.getShipmentById(shipmentId),
-    enabled: !!shipmentId && isEdit,
-    onSuccess: (data) => {
-      if (data && !isDuplicate) {
-        const shipment = data.data;
-        if (shipment) {
-          setSender({
-            name: shipment.sender?.name || "",
-            phone: shipment.sender?.phone || "",
-            address: {
-              province: shipment.sender?.address?.province || "",
-              city: shipment.sender?.address?.city || "",
-              district: shipment.sender?.address?.district || "",
-            },
-          });
-          setRecipient({
-            name: shipment.recipient?.name || "",
-            phone: shipment.recipient?.phone || "",
-            address: {
-              province: shipment.recipient?.address?.province || "",
-              city: shipment.recipient?.address?.city || "",
-              district: shipment.recipient?.address?.district || "",
-              street: shipment.recipient?.address?.street || "",
-            },
-          });
-          setShipmentType(shipment.shipment_type || "pickup");
-          setCourier(shipment.courier || "");
-          setMarketing(shipment.marketing || "");
-          setDiscount(shipment.discount || 0);
-          setTrackingNumber(shipment.tracking_number);
-
-          // Process items with calculated weights
-          if (Array.isArray(shipment.items)) {
-            const itemsWithWeight = shipment.items.map((item) => ({
-              ...item,
-              volumeWeight: item.volumeWeight ?? calculateVolumeWeight(item),
-              totalWeight: item.totalWeight ?? calculateTotalWeight(item),
-            }));
-            setItems(itemsWithWeight);
-          }
-
-          setIsArchived(shipment.is_archived || false);
-        }
-      }
-    },
-  });
-
-  // Mutation for creating/updating shipment
-  const createMutation = useMutation({
-    mutationFn: (data) => ShipmentService.createShipment(data),
-    onSuccess: () => {
-      toast.success("Pengiriman berhasil dibuat!");
-      queryClient.invalidateQueries({ queryKey: ["shipments"] });
-      navigate("/shipments");
-    },
-    onError: (error) => {
-      toast.error(`Gagal membuat pengiriman: ${error.message}`);
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => ShipmentService.updateShipment(id, data),
-    onSuccess: () => {
-      toast.success("Pengiriman berhasil diperbarui!");
-      queryClient.invalidateQueries({ queryKey: ["shipments"] });
-      navigate("/shipments");
-    },
-    onError: (error) => {
-      toast.error(`Gagal memperbarui pengiriman: ${error.message}`);
-    },
-  });
-
-  const archiveMutation = useMutation({
-    mutationFn: ({ id, isArchived }) =>
-      ShipmentService.archiveShipment(id, isArchived),
-    onSuccess: (_, variables) => {
-      toast.success(
-        variables.isArchived
-          ? "Pengiriman berhasil diarsipkan"
-          : "Pengiriman berhasil dibatalkan arsip"
-      );
-      queryClient.invalidateQueries({ queryKey: ["shipments"] });
-      navigate("/shipments");
-    },
-    onError: (error) => {
-      toast.error(`Gagal mengubah status arsip: ${error.message}`);
-    },
-  });
-
-  // Inisialisasi state
+  // Inisialisasi state terlebih dahulu sebelum useQuery
   const [sender, setSender] = useState(
     shipmentData && shipmentData.sender
       ? {
           ...defaultSender,
           ...shipmentData.sender,
-          address: { ...defaultSender.address, ...shipmentData.sender.address },
+          address: {
+            ...defaultSender.address,
+            ...shipmentData.sender.address,
+            city_id: shipmentData.sender.address.city_id || null,
+          },
         }
       : defaultSender
   );
@@ -278,6 +330,7 @@ const ShipmentForm = () => {
           address: {
             ...defaultRecipient.address,
             ...shipmentData.recipient.address,
+            city_id: shipmentData.recipient.address.city_id || null,
           },
         }
       : defaultRecipient
@@ -327,6 +380,164 @@ const ShipmentForm = () => {
     totalCost: 0,
     discount: 0,
     finalCost: 0,
+    isManualRate: false,
+  });
+
+  // State untuk input manual tarif
+  const [manualRatePerKg, setManualRatePerKg] = useState("");
+  const [manualTotalCost, setManualTotalCost] = useState("");
+
+  // Fetch shipment data if editing
+  const {
+    data: fetchedShipment,
+    isLoading: isLoadingShipment,
+    error: shipmentError,
+  } = useQuery({
+    queryKey: ["shipment", shipmentId],
+    queryFn: () => ShipmentService.getShipmentById(shipmentId),
+    enabled: !!shipmentId && isEdit,
+    onSuccess: (data) => {
+      if (data && !isDuplicate) {
+        const shipment = data.data;
+        if (shipment) {
+          setSender({
+            name: shipment.sender?.name || "",
+            phone: shipment.sender?.phone || "",
+            address: {
+              province: shipment.sender?.address?.province || "",
+              city: shipment.sender?.address?.city || "",
+              district: shipment.sender?.address?.district || "",
+              city_id: shipment.sender?.address?.city_id || null,
+            },
+          });
+          setRecipient({
+            name: shipment.recipient?.name || "",
+            phone: shipment.recipient?.phone || "",
+            address: {
+              province: shipment.recipient?.address?.province || "",
+              city: shipment.recipient?.address?.city || "",
+              district: shipment.recipient?.address?.district || "",
+              street: shipment.recipient?.address?.street || "",
+              city_id: shipment.recipient?.address?.city_id || null,
+            },
+          });
+          setShipmentType(shipment.shipment_type || "pickup");
+          setCourier(shipment.courier || "");
+          setMarketing(shipment.marketing || "");
+          setDiscount(shipment.discount || 0);
+          setTrackingNumber(shipment.tracking_number);
+
+          // Process items with calculated weights
+          if (Array.isArray(shipment.items)) {
+            const itemsWithWeight = shipment.items.map((item) => ({
+              ...item,
+              volumeWeight: item.volumeWeight ?? calculateVolumeWeight(item),
+              totalWeight: item.totalWeight ?? calculateTotalWeight(item),
+            }));
+            setItems(itemsWithWeight);
+          }
+
+          setIsArchived(shipment.is_archived || false);
+        }
+      }
+    },
+  });
+
+  // Fetch data provinsi
+  const { data: provinces, isLoading: isLoadingProvinces } = useQuery({
+    queryKey: ["provinces"],
+    queryFn: () => AddressService.getProvinces(),
+  });
+
+  // Fetch data kota berdasarkan provinsi pengirim
+  const { data: senderCities, isLoading: isLoadingSenderCities } = useQuery({
+    queryKey: ["cities", sender.address.province],
+    queryFn: () => AddressService.getCities(sender.address.province),
+    enabled: !!sender.address.province,
+  });
+
+  // Fetch data kecamatan berdasarkan kota pengirim
+  const { data: senderDistricts, isLoading: isLoadingSenderDistricts } =
+    useQuery({
+      queryKey: ["districts", sender.address.city],
+      queryFn: () => AddressService.getDistricts(sender.address.city),
+      enabled: !!sender.address.city,
+    });
+
+  // Fetch data kota berdasarkan provinsi penerima
+  const { data: recipientCities, isLoading: isLoadingRecipientCities } =
+    useQuery({
+      queryKey: ["cities", recipient.address.province],
+      queryFn: () => AddressService.getCities(recipient.address.province),
+      enabled: !!recipient.address.province,
+    });
+
+  // Fetch data kecamatan berdasarkan kota penerima
+  const { data: recipientDistricts, isLoading: isLoadingRecipientDistricts } =
+    useQuery({
+      queryKey: ["districts", recipient.address.city],
+      queryFn: () => AddressService.getDistricts(recipient.address.city),
+      enabled: !!recipient.address.city,
+    });
+
+  // Fetch data kota dari API Cities (untuk referensi ke shipping rates)
+  const { data: citiesData, isLoading: isLoadingCitiesData } = useQuery({
+    queryKey: ["cities-data"],
+    queryFn: () => CityService.getCities(),
+  });
+
+  // Fetch data kurir (role_id = 3)
+  const { data: couriers, isLoading: isLoadingCouriers } = useQuery({
+    queryKey: ["users", COURIER_ROLE_ID],
+    queryFn: () => UserService.getUsersByRole(COURIER_ROLE_ID),
+  });
+
+  // Fetch data marketing (role_id = 4)
+  const { data: marketers, isLoading: isLoadingMarketers } = useQuery({
+    queryKey: ["users", MARKETING_ROLE_ID],
+    queryFn: () => UserService.getUsersByRole(MARKETING_ROLE_ID),
+  });
+
+  // Mutation for creating/updating shipment
+  const createMutation = useMutation({
+    mutationFn: (data) => ShipmentService.createShipment(data),
+    onSuccess: () => {
+      toast.success("Pengiriman berhasil dibuat!");
+      queryClient.invalidateQueries({ queryKey: ["shipments"] });
+      navigate("/shipments");
+    },
+    onError: (error) => {
+      toast.error(`Gagal membuat pengiriman: ${error.message}`);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => ShipmentService.updateShipment(id, data),
+    onSuccess: () => {
+      toast.success("Pengiriman berhasil diperbarui!");
+      queryClient.invalidateQueries({ queryKey: ["shipments"] });
+      navigate("/shipments");
+    },
+    onError: (error) => {
+      toast.error(`Gagal memperbarui pengiriman: ${error.message}`);
+    },
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: ({ id, isArchived }) =>
+      ShipmentService.archiveShipment(id, isArchived),
+    onSuccess: (_, variables) => {
+      toast.success(
+        variables.isArchived
+          ? "Pengiriman berhasil diarsipkan"
+          : "Pengiriman berhasil dibatalkan arsip"
+      );
+      queryClient.invalidateQueries({ queryKey: ["shipments"] });
+      navigate("/shipments");
+    },
+    onError: (error) => {
+      toast.error(`Gagal mengubah status arsip: ${error.message}`);
+    },
   });
 
   // Jika shipmentData berubah (navigasi dari arsip), update state form
@@ -340,6 +551,7 @@ const ShipmentForm = () => {
               address: {
                 ...defaultSender.address,
                 ...shipmentData.sender.address,
+                city_id: shipmentData.sender.address.city_id || null,
               },
             }
           : defaultSender
@@ -352,6 +564,7 @@ const ShipmentForm = () => {
               address: {
                 ...defaultRecipient.address,
                 ...shipmentData.recipient.address,
+                city_id: shipmentData.recipient.address.city_id || null,
               },
             }
           : defaultRecipient
@@ -378,6 +591,22 @@ const ShipmentForm = () => {
         );
       }
       setIsArchived(shipmentData.is_archived || false);
+
+      // Set tarif jika ada
+      if (shipmentData.rate_per_kg) {
+        setShippingRate({
+          ratePerKg: shipmentData.rate_per_kg || 0,
+          totalCost: shipmentData.total_cost || 0,
+          discount: shipmentData.discount || 0,
+          finalCost: shipmentData.final_cost || 0,
+          isManualRate: !!shipmentData.is_manual_rate,
+        });
+
+        if (shipmentData.is_manual_rate) {
+          setManualRatePerKg(shipmentData.rate_per_kg || "");
+          setManualTotalCost(shipmentData.total_cost || "");
+        }
+      }
     }
   }, [shipmentData, isDuplicate, isLoadingShipment]);
 
@@ -402,17 +631,31 @@ const ShipmentForm = () => {
     }, 0);
   }, [items]);
 
-  // Effect untuk menghitung biaya pengiriman otomatis
-  useEffect(() => {
-    if (sender.address.city && recipient.address.city && totalWeight > 0) {
-      const rate = shippingRates.find(
-        (rate) =>
-          rate.origin === sender.address.city &&
-          rate.destination === recipient.address.city
-      );
-
-      if (rate) {
-        const ratePerKg = rate.price;
+  // Fetch shipping rate when sender city_id, recipient city_id, or totalWeight changes
+  const {
+    data: shippingRateData,
+    isLoading: isLoadingShippingRate,
+    error: shippingRateError,
+    refetch: refetchShippingRate,
+  } = useQuery({
+    queryKey: [
+      "shipping-rate",
+      sender.address.city_id,
+      recipient.address.city_id,
+    ],
+    queryFn: () =>
+      ShippingRateService.getRate(
+        sender.address.city_id,
+        recipient.address.city_id
+      ),
+    enabled: !!(
+      sender.address.city_id &&
+      recipient.address.city_id &&
+      !shippingRate.isManualRate
+    ),
+    onSuccess: (data) => {
+      if (data.success && data.data) {
+        const ratePerKg = data.data.rate_per_kg || 0;
         const totalCost = ratePerKg * totalWeight;
         const discountAmount = parseFloat(discount) || 0;
         const finalCost = Math.max(0, totalCost - discountAmount);
@@ -422,18 +665,104 @@ const ShipmentForm = () => {
           totalCost,
           discount: discountAmount,
           finalCost,
+          isManualRate: false,
         });
-      } else {
+      }
+    },
+    onError: () => {
+      setShippingRate({
+        ...shippingRate,
+        isManualRate: true,
+      });
+      toast.error(
+        "Tarif untuk rute ini belum tersedia. Silakan masukkan tarif secara manual."
+      );
+    },
+  });
+
+  // Effect untuk menghitung biaya pengiriman dari tarif manual
+  useEffect(() => {
+    if (shippingRate.isManualRate) {
+      // Jika user mengisi rate per kg
+      if (manualRatePerKg && totalWeight > 0) {
+        const rate = parseFloat(manualRatePerKg);
+        const totalCost = rate * totalWeight;
+        const discountAmount = parseFloat(discount) || 0;
+        const finalCost = Math.max(0, totalCost - discountAmount);
+
+        setManualTotalCost(totalCost.toFixed(0));
         setShippingRate({
-          ratePerKg: 0,
-          totalCost: 0,
-          discount: 0,
-          finalCost: 0,
+          ratePerKg: rate,
+          totalCost,
+          discount: discountAmount,
+          finalCost,
+          isManualRate: true,
         });
-        toast.error("Tarif untuk rute ini belum tersedia");
+      }
+      // Jika user mengisi total cost
+      else if (manualTotalCost && totalWeight > 0) {
+        const totalCost = parseFloat(manualTotalCost);
+        const ratePerKg = totalCost / totalWeight;
+        const discountAmount = parseFloat(discount) || 0;
+        const finalCost = Math.max(0, totalCost - discountAmount);
+
+        setManualRatePerKg(ratePerKg.toFixed(0));
+        setShippingRate({
+          ratePerKg,
+          totalCost,
+          discount: discountAmount,
+          finalCost,
+          isManualRate: true,
+        });
       }
     }
-  }, [sender.address.city, recipient.address.city, totalWeight, discount]);
+  }, [
+    manualRatePerKg,
+    manualTotalCost,
+    totalWeight,
+    discount,
+    shippingRate.isManualRate,
+  ]);
+
+  // Effect untuk menghitung ulang total biaya pengiriman ketika diskon berubah
+  useEffect(() => {
+    setShippingRate((prev) => ({
+      ...prev,
+      discount: parseFloat(discount) || 0,
+      finalCost: Math.max(0, prev.totalCost - (parseFloat(discount) || 0)),
+    }));
+  }, [discount]);
+
+  // Handler untuk switch ke mode input tarif manual
+  const handleSwitchToManualRate = () => {
+    setShippingRate({
+      ...shippingRate,
+      isManualRate: true,
+    });
+
+    // Inisialisasi nilai awal
+    if (shippingRate.ratePerKg > 0) {
+      setManualRatePerKg(shippingRate.ratePerKg.toString());
+    }
+    if (shippingRate.totalCost > 0) {
+      setManualTotalCost(shippingRate.totalCost.toString());
+    }
+  };
+
+  // Handler untuk kembali ke mode tarif otomatis
+  const handleSwitchToAutoRate = () => {
+    setShippingRate({
+      ...shippingRate,
+      isManualRate: false,
+    });
+
+    // Reset nilai input manual
+    setManualRatePerKg("");
+    setManualTotalCost("");
+
+    // Refetch tarif
+    refetchShippingRate();
+  };
 
   const handleAddItem = () => {
     if (!currentItem.name || !currentItem.weight) {
@@ -484,20 +813,43 @@ const ShipmentForm = () => {
       return;
     }
 
+    // Prepare items data
+    const formattedItems = items.map((item) => ({
+      name: item.name,
+      actual_weight: parseFloat(item.weight) || 0,
+      quantity: parseInt(item.quantity) || 1,
+      length_cm: parseFloat(item.length) || 0,
+      width_cm: parseFloat(item.width) || 0,
+      height_cm: parseFloat(item.height) || 0,
+      volume_weight: item.volumeWeight || calculateVolumeWeight(item),
+      chargeable_weight: item.totalWeight || calculateTotalWeight(item),
+    }));
+
     // Prepare data for API
     const shipmentData = {
       tracking_number: trackingNumber,
-      sender: sender,
-      recipient: recipient,
-      items: items,
+      sender_name: sender.name,
+      sender_phone: sender.phone,
+      sender_address: sender.address.street || "",
+      sender_city_id: sender.address.city_id,
+      recipient_name: recipient.name,
+      recipient_phone: recipient.phone,
+      recipient_address: recipient.address.street || "",
+      recipient_city_id: recipient.address.city_id,
       shipment_type: shipmentType,
-      courier: courier,
-      marketing: marketing,
+      courier_id: courier,
+      marketer_id: marketing,
+      rate_per_kg: shippingRate.ratePerKg,
+      total_chargeable_weight: totalWeight,
+      base_shipping_cost: shippingRate.totalCost,
       discount: parseFloat(discount) || 0,
+      final_shipping_cost: shippingRate.finalCost,
+      is_manual_rate: shippingRate.isManualRate,
+      payment_status: "unpaid",
       status: "pickup",
-      total_cost: shippingRate.finalCost,
       is_archived: isArchived,
-      date: new Date().toISOString().split("T")[0],
+      notes: "",
+      items: formattedItems,
     };
 
     if (isEdit && shipmentId) {
@@ -707,7 +1059,7 @@ const ShipmentForm = () => {
                     <Button
                       type="button"
                       onClick={handleAddItem}
-                      className="w-full bg-[#0C4A6E] hover:bg-[#0C4A6E]/90"
+                      className="w-full bg-[#FF6B2C] hover:bg-[#FF6B2C]/90"
                     >
                       <Plus className="mr-2 h-4 w-4" /> Tambah Barang
                     </Button>
@@ -851,51 +1203,154 @@ const ShipmentForm = () => {
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <Label htmlFor="sender-province">Provinsi</Label>
-                              <Input
-                                id="sender-province"
+                              <Select
                                 value={sender.address.province}
-                                onChange={(e) =>
+                                onValueChange={(value) =>
                                   setSender((prev) => ({
                                     ...prev,
                                     address: {
                                       ...prev.address,
-                                      province: e.target.value,
+                                      province: value,
+                                      // Reset city when province changes
+                                      city: "",
+                                      district: "",
+                                      city_id: null,
                                     },
                                   }))
                                 }
-                              />
+                              >
+                                <SelectTrigger className="bg-white border-gray-200">
+                                  <SelectValue placeholder="Pilih provinsi" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {isLoadingProvinces ? (
+                                    <SelectItem value="_loading" disabled>
+                                      Memuat data...
+                                    </SelectItem>
+                                  ) : provinces?.data ? (
+                                    provinces.data.map((province) => (
+                                      <SelectItem
+                                        key={province}
+                                        value={province}
+                                      >
+                                        {province}
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <SelectItem value="_no_data" disabled>
+                                      Data tidak tersedia
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="sender-city">Kota</Label>
-                              <Input
-                                id="sender-city"
+                              <Select
                                 value={sender.address.city}
-                                onChange={(e) =>
+                                onValueChange={(value) => {
+                                  const cityData =
+                                    citiesData?.data?.cities?.find(
+                                      (c) => c.name === value
+                                    );
+
                                   setSender((prev) => ({
                                     ...prev,
                                     address: {
                                       ...prev.address,
-                                      city: e.target.value,
+                                      city: value,
+                                      city_id: cityData?.id || null,
+                                      // Reset district when city changes
+                                      district: "",
                                     },
-                                  }))
-                                }
-                              />
+                                  }));
+                                }}
+                                disabled={!sender.address.province}
+                              >
+                                <SelectTrigger className="bg-white border-gray-200">
+                                  <SelectValue
+                                    placeholder={
+                                      sender.address.province
+                                        ? "Pilih kota"
+                                        : "Pilih provinsi dahulu"
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {isLoadingSenderCities ? (
+                                    <SelectItem value="_loading" disabled>
+                                      Memuat data...
+                                    </SelectItem>
+                                  ) : senderCities?.data ? (
+                                    senderCities.data.map((city) => {
+                                      // Cari kota dalam data Cities API
+                                      const cityData =
+                                        citiesData?.data?.cities?.find(
+                                          (c) => c.name === city
+                                        );
+
+                                      // Jika tidak ada dalam data Cities API, skip
+                                      if (!cityData) return null;
+
+                                      return (
+                                        <SelectItem key={city} value={city}>
+                                          {city}
+                                        </SelectItem>
+                                      );
+                                    })
+                                  ) : (
+                                    <SelectItem value="_no_data" disabled>
+                                      Data tidak tersedia
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="sender-district">Kecamatan</Label>
-                              <Input
-                                id="sender-district"
+                              <Select
                                 value={sender.address.district}
-                                onChange={(e) =>
+                                onValueChange={(value) =>
                                   setSender((prev) => ({
                                     ...prev,
                                     address: {
                                       ...prev.address,
-                                      district: e.target.value,
+                                      district: value,
                                     },
                                   }))
                                 }
-                              />
+                                disabled={!sender.address.city}
+                              >
+                                <SelectTrigger className="bg-white border-gray-200">
+                                  <SelectValue
+                                    placeholder={
+                                      sender.address.city
+                                        ? "Pilih kecamatan"
+                                        : "Pilih kota dahulu"
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {isLoadingSenderDistricts ? (
+                                    <SelectItem value="_loading" disabled>
+                                      Memuat data...
+                                    </SelectItem>
+                                  ) : senderDistricts?.data ? (
+                                    senderDistricts.data.map((district) => (
+                                      <SelectItem
+                                        key={district}
+                                        value={district}
+                                      >
+                                        {district}
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <SelectItem value="_no_data" disabled>
+                                      Data tidak tersedia
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
                           <div className="flex justify-end mt-4">
@@ -968,53 +1423,156 @@ const ShipmentForm = () => {
                               <Label htmlFor="recipient-province">
                                 Provinsi
                               </Label>
-                              <Input
-                                id="recipient-province"
+                              <Select
                                 value={recipient.address.province}
-                                onChange={(e) =>
+                                onValueChange={(value) =>
                                   setRecipient((prev) => ({
                                     ...prev,
                                     address: {
                                       ...prev.address,
-                                      province: e.target.value,
+                                      province: value,
+                                      // Reset city when province changes
+                                      city: "",
+                                      district: "",
+                                      city_id: null,
                                     },
                                   }))
                                 }
-                              />
+                              >
+                                <SelectTrigger className="bg-white border-gray-200">
+                                  <SelectValue placeholder="Pilih provinsi" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {isLoadingProvinces ? (
+                                    <SelectItem value="_loading" disabled>
+                                      Memuat data...
+                                    </SelectItem>
+                                  ) : provinces?.data ? (
+                                    provinces.data.map((province) => (
+                                      <SelectItem
+                                        key={province}
+                                        value={province}
+                                      >
+                                        {province}
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <SelectItem value="_no_data" disabled>
+                                      Data tidak tersedia
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="recipient-city">Kota</Label>
-                              <Input
-                                id="recipient-city"
+                              <Select
                                 value={recipient.address.city}
-                                onChange={(e) =>
+                                onValueChange={(value) => {
+                                  const cityData =
+                                    citiesData?.data?.cities?.find(
+                                      (c) => c.name === value
+                                    );
+
                                   setRecipient((prev) => ({
                                     ...prev,
                                     address: {
                                       ...prev.address,
-                                      city: e.target.value,
+                                      city: value,
+                                      city_id: cityData?.id || null,
+                                      // Reset district when city changes
+                                      district: "",
                                     },
-                                  }))
-                                }
-                              />
+                                  }));
+                                }}
+                                disabled={!recipient.address.province}
+                              >
+                                <SelectTrigger className="bg-white border-gray-200">
+                                  <SelectValue
+                                    placeholder={
+                                      recipient.address.province
+                                        ? "Pilih kota"
+                                        : "Pilih provinsi dahulu"
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {isLoadingRecipientCities ? (
+                                    <SelectItem value="_loading" disabled>
+                                      Memuat data...
+                                    </SelectItem>
+                                  ) : recipientCities?.data ? (
+                                    recipientCities.data.map((city) => {
+                                      // Cari kota dalam data Cities API
+                                      const cityData =
+                                        citiesData?.data?.cities?.find(
+                                          (c) => c.name === city
+                                        );
+
+                                      // Jika tidak ada dalam data Cities API, skip
+                                      if (!cityData) return null;
+
+                                      return (
+                                        <SelectItem key={city} value={city}>
+                                          {city}
+                                        </SelectItem>
+                                      );
+                                    })
+                                  ) : (
+                                    <SelectItem value="_no_data" disabled>
+                                      Data tidak tersedia
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="recipient-district">
                                 Kecamatan
                               </Label>
-                              <Input
-                                id="recipient-district"
+                              <Select
                                 value={recipient.address.district}
-                                onChange={(e) =>
+                                onValueChange={(value) =>
                                   setRecipient((prev) => ({
                                     ...prev,
                                     address: {
                                       ...prev.address,
-                                      district: e.target.value,
+                                      district: value,
                                     },
                                   }))
                                 }
-                              />
+                                disabled={!recipient.address.city}
+                              >
+                                <SelectTrigger className="bg-white border-gray-200">
+                                  <SelectValue
+                                    placeholder={
+                                      recipient.address.city
+                                        ? "Pilih kecamatan"
+                                        : "Pilih kota dahulu"
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {isLoadingRecipientDistricts ? (
+                                    <SelectItem value="_loading" disabled>
+                                      Memuat data...
+                                    </SelectItem>
+                                  ) : recipientDistricts?.data ? (
+                                    recipientDistricts.data.map((district) => (
+                                      <SelectItem
+                                        key={district}
+                                        value={district}
+                                      >
+                                        {district}
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <SelectItem value="_no_data" disabled>
+                                      Data tidak tersedia
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="recipient-street">
@@ -1064,16 +1622,92 @@ const ShipmentForm = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-4 bg-gray-50/80 p-6 rounded-xl">
-                    <div className="space-y-2">
-                      <Label className="text-[#0C4A6E]">Tarif per Kg</Label>
-                      <Input
-                        value={`Rp ${shippingRate.ratePerKg.toLocaleString(
-                          "id-ID"
-                        )}`}
-                        readOnly
-                        className="bg-white border-gray-200"
-                      />
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-[#0C4A6E] font-medium">
+                        Informasi Tarif
+                      </Label>
+                      {sender.address.city_id && recipient.address.city_id && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={
+                            shippingRate.isManualRate
+                              ? handleSwitchToAutoRate
+                              : handleSwitchToManualRate
+                          }
+                          className="text-xs"
+                        >
+                          {shippingRate.isManualRate
+                            ? "Gunakan Tarif Otomatis"
+                            : "Input Tarif Manual"}
+                        </Button>
+                      )}
                     </div>
+
+                    {shippingRate.isManualRate ? (
+                      <>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="manual-rate-per-kg"
+                            className="text-[#0C4A6E]"
+                          >
+                            Tarif per Kg (Rp)
+                          </Label>
+                          <Input
+                            id="manual-rate-per-kg"
+                            type="number"
+                            value={manualRatePerKg}
+                            onChange={(e) => setManualRatePerKg(e.target.value)}
+                            placeholder="Masukkan tarif per kg"
+                            className="bg-white border-gray-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="manual-total-cost"
+                            className="text-[#0C4A6E]"
+                          >
+                            Total Biaya (Rp)
+                          </Label>
+                          <Input
+                            id="manual-total-cost"
+                            type="number"
+                            value={manualTotalCost}
+                            onChange={(e) => setManualTotalCost(e.target.value)}
+                            placeholder="Masukkan total biaya"
+                            className="bg-white border-gray-200"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <Label className="text-[#0C4A6E]">Tarif per Kg</Label>
+                          <Input
+                            value={`Rp ${shippingRate.ratePerKg.toLocaleString(
+                              "id-ID"
+                            )}`}
+                            readOnly
+                            className="bg-white border-gray-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-[#0C4A6E]">
+                            Total Biaya Pengiriman
+                          </Label>
+                          <Input
+                            value={`Rp ${shippingRate.totalCost.toLocaleString(
+                              "id-ID"
+                            )}`}
+                            readOnly
+                            className="bg-white border-gray-200 font-semibold text-[#0C4A6E]"
+                          />
+                        </div>
+                      </>
+                    )}
 
                     <div className="space-y-2">
                       <Label className="text-[#0C4A6E]">Total Berat</Label>
@@ -1081,19 +1715,6 @@ const ShipmentForm = () => {
                         value={`${Number(totalWeight).toFixed(2)} kg`}
                         readOnly
                         className="bg-white border-gray-200"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-[#0C4A6E]">
-                        Total Biaya Pengiriman
-                      </Label>
-                      <Input
-                        value={`Rp ${shippingRate.totalCost.toLocaleString(
-                          "id-ID"
-                        )}`}
-                        readOnly
-                        className="bg-white border-gray-200 font-semibold text-[#0C4A6E]"
                       />
                     </div>
                   </div>
@@ -1170,10 +1791,27 @@ const ShipmentForm = () => {
                           <SelectValue placeholder="Pilih kurir" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">Agus Subagyo</SelectItem>
-                          <SelectItem value="2">Budi Santoso</SelectItem>
-                          <SelectItem value="3">Citra Dewi</SelectItem>
-                          <SelectItem value="4">Dian Pratama</SelectItem>
+                          {isLoadingCouriers ? (
+                            <SelectItem value="_loading" disabled>
+                              Memuat data...
+                            </SelectItem>
+                          ) : couriers?.data ? (
+                            couriers.data.map((courierItem) => (
+                              <SelectItem
+                                key={courierItem.id}
+                                value={
+                                  courierItem.id ||
+                                  `courier_${courierItem.name}`
+                                }
+                              >
+                                {courierItem.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="_no_couriers" disabled>
+                              Data tidak tersedia
+                            </SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1184,13 +1822,34 @@ const ShipmentForm = () => {
                       <Label htmlFor="marketing" className="text-[#0C4A6E]">
                         Marketing
                       </Label>
-                      <Input
-                        id="marketing"
-                        value={marketing}
-                        onChange={(e) => setMarketing(e.target.value)}
-                        placeholder="Nama marketing"
-                        className="bg-white border-gray-200"
-                      />
+                      <Select value={marketing} onValueChange={setMarketing}>
+                        <SelectTrigger className="bg-white border-gray-200">
+                          <SelectValue placeholder="Pilih marketing" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {isLoadingMarketers ? (
+                            <SelectItem value="_loading" disabled>
+                              Memuat data...
+                            </SelectItem>
+                          ) : marketers?.data ? (
+                            marketers.data.map((marketerItem) => (
+                              <SelectItem
+                                key={marketerItem.id}
+                                value={
+                                  marketerItem.id ||
+                                  `marketer_${marketerItem.name}`
+                                }
+                              >
+                                {marketerItem.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="_no_marketers" disabled>
+                              Data tidak tersedia
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label

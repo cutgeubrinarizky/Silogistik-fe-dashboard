@@ -69,101 +69,101 @@ const App = () => {
             <Route
               path="/"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <Dashboard />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/shipments"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <Shipments />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/shipments/new"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <ShipmentForm />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/shipping-rates"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <ShippingRates />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/finance"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <Finance />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/employees"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <Employees />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/labels"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <Labels />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/reports"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <Reports />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/settings"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <Settings />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
             <Route
               path="/users"
               element={
-                // <AuthGuard>
+                <AuthGuard>
                   <Layout>
                     <Users />
                   </Layout>
-                // </AuthGuard>
+                </AuthGuard>
               }
             />
 

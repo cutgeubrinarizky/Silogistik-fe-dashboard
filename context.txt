@@ -1,0 +1,375 @@
+📌 SKEMA MULTI-TENANT SAAS LOGISTIK
+1. Registrasi Tenant Baru
+Setiap pengguna yang mendaftar otomatis menjadi Super Admin untuk tenant-nya dan mendapatkan subdomain khusus: namatenant.silogistik.com.
+Form Pendaftaran
+Nama Lengkap
+
+
+Nama Perusahaan
+
+
+Email
+
+
+Password
+
+
+Alur:
+Submit form → kirim OTP ke email
+
+
+Input OTP → redirect ke halaman pemilihan Subscription Plan
+
+
+Setelah pilih plan → redirect ke halaman pembayaran (Midtrans/Xendit)
+
+
+Jika sukses → status aktif & diarahkan ke dashboard tenant
+
+
+
+2. Subscription Plan
+Plan
+Kiriman
+Akun
+Fitur Akses
+Durasi
+Free
+100
+3 akun
+Semua fitur aktif
+30 hari
+Pro
+500
+10 akun
+Semua fitur aktif
+30 hari
+Business
+No Limit
+No Limit
+Semua fitur aktif
+30 hari
+
+
+Jika masa aktif habis, saat login muncul popup:
+
+
+ “Masa aktif Anda telah berakhir. Silakan lanjutkan pembayaran untuk menggunakan kembali fitur.”
+
+
+
+Akses fitur dikunci, tapi data tetap aman
+
+
+Mendukung penggunaan wildcard SSL untuk subdomain (*.silogistik.com)
+
+
+
+📌 FITUR SUPER ADMIN / ADMIN TENANT
+1. 🖥️ Dashboard
+Card Ringkasan:
+Total Pengiriman Hari Ini
+
+
+Paket Dalam Perjalanan
+
+
+Total Kurir Aktif
+
+
+Total Kiriman Bulan Ini
+
+
+Grafik:
+Tren pengiriman (7 hari terakhir / bulanan)
+
+
+Distribusi status pengiriman (berdasarkan area, berdasarkan status pengiriman dan berdasarkan berat paket)
+
+
+Akses Cepat:
++ Pengiriman Baru
+
+
+Lacak Resi
+
+
+Cetak Label
+
+
+
+2. 🚚 Manajemen Pengiriman
+a. Form Input Pengiriman Baru
+Informasi Barang (Multiple Entry):
+Nama Barang
+Berat (kg),
+Jumlah
+Panjang × Lebar × Tinggi (cm)
+
+
+List barang ditampilkan dalam tabel:
+
+
+Nama, Berat, Jumlah, Berat Volume, Berat Total
+
+
+Aksi: Edit / Hapus
+
+
+Total Berat Keseluruhan (di bawah tabel)
+Note :
+Berat Volume = (P × L × T) / pengali
+Berat Total = MAX(Berat Volume, Berat Aktual)
+
+
+Informasi Pengiriman:
+Data Pengirim
+Nama
+No.telp
+Alamat
+
+
+Data Penerima
+nama
+no.telp
+alamat
+Informasi Biaya:
+
+
+Tarif per Kg (diambil dari data ongkir di manajemen ongkir, dengan mengecek kota dari alamat pengirim dan penerima)
+Total Berat 
+Total Biaya Pengiriman
+Diskon/potongan
+total biaya setelah diskon
+
+
+Informasi Tambahan:
+Jenis Kiriman: Pickup / Drop-off
+
+
+Default status:
+
+
+Pickup → “Siap dijemput”
+
+
+Drop-off → “Siap dikirim”
+
+
+Kurir: pilih dari dropdown Kurir aktif
+
+
+Marketing: pilih dari dropdown Marketing aktif
+
+
+Nomor Resi: auto generate berdasarkan prefix setting
+
+
+
+Aksi Final: 
+Arsipkan - akan masuk ke tab arsip di daftar pengiriman yang mana nanti bisa melanjutkan edit
+Simpan → tombol “Cetak Resi” (preview dan bisa pilih download dan cetak langsung)
+
+b. Daftar Pengiriman
+Tab Pengiriman Aktif (Daftar kiriman yang sudah dibuat (yang resi sudah terbit)
+Tab Arsip (Daftar kiriman yang diarsipkan)
+Tabel:
+No Resi, Pengirim, Penerima, Kota Asal, Kota Tujuan, Berat Total, Status, Tanggal, Aksi
+
+
+Filter:
+Berdasarkan Search (berdasarkan semuanya),  Status, Kurir, Jenis Kiriman
+
+
+Aksi:
+Update Status
+
+
+Edit / Hapus
+
+
+Cetak Label (satuan atau bulk)
+Duplikat (Masuk ke tambah pengiriman dengan data yang sama tapi resi yang baru)
+
+
+Lihat (Menampilkan popup detail pengiriman)
+c. Update Status Pengiriman
+Nomor Resi (Otomatis)
+
+
+Status baru, Tanggal, Keterangan
+History Status (bisa hapus)
+
+
+Catatan: Status tidak berubah otomatis — harus diubah manual oleh user sesuai kebutuhan
+
+
+
+
+
+3. 🚚 Manajemen Ongkir
+a. Form Input Kota Asal - Kota Tujuan dan Harga / kg
+b. List Ongkir yang sudah di input dengan aksi lengkap crud 
+
+
+
+
+
+4. ⚙️ Pengaturan Tenant
+a. Format Resi Otomatis
+Tambah Prefix (misal: CGN10)
+
+
+Set Nomor Awal (misal: 00001)
+
+
+
+Contoh Output: CGN1000001, CGN1000002, ...
+b. Pengali Berat Volume
+Nilai default: 6000
+
+
+Bisa ubah ke nilai lain (5000, 4000, dst.)
+
+
+c. Profil Perusahaan
+Logo, Nama, Alamat, Website, No. Telp
+
+
+
+5. 👥 Manajemen Pegawai
+Kurir:
+Nama, No. HP, Plat Nomor, Status Aktif/Tidak, Email, Password
+
+
+Statistik: Total pengiriman, terkirim, gagal, dalam perjalanan
+
+
+
+Marketing:
+Nama, No. HP, Alamat, Status Aktif/Tidak, Email, Password
+
+
+Statistik pengiriman per marketing
+
+
+Admin:
+Nama, No.Hp, Alamat, Status Aktif/Tidak, Email, Password
+
+
+6. 🧾 Cetak Label & Invoice
+Format label:
+
+
+nanti ada fitur untuk memilih format label dalam bentuk pfd, akan ada beberapa template yang dibuat. untuk dipilih. yang mana nama perusahaan, logo dan alamat sesuai dengan yang diisi di profil perusahaan
+
+
+Ukuran:
+
+
+Thermal (10x15 cm) atau A4 (2–4 label per halaman)
+
+
+
+7. 📊 Laporan & Ekspor Data
+Laporan Harian, Mingguan, Bulanan:
+
+
+Total kiriman
+
+
+Berat total
+
+
+Ongkir terkumpul
+
+
+Berdasarkan kurir / jenis pengiriman
+Berdasarkan Marketing
+
+
+Ekspor ke Excel:
+
+
+Daftar pengiriman + data lengkap
+
+
+Laporan performa kurir
+
+
+8. 💸 Manajemen Keuangan
+Pencatatan Transaksi Keuangan
+Pemasukan (misal dari pelanggan)
+
+
+Pengeluaran (biaya operasional, bahan bakar, gaji kurir)
+
+
+Tipe transaksi: tunai, transfer, QRIS
+
+
+Kategori: pengiriman, operasional, perawatan, lainnya
+ada list kiriman yang nantinya super admin bisa menandai lunas untuk setiap kiriman yang sudah dibayarkan. jika ditandai lunas maka otomatis masuk ke pemasukan. serta ada aksi untuk mencetak invoice.
+
+
+ Laporan Keuangan
+Laporan harian / bulanan pemasukan dan pengeluaran
+
+
+Grafik arus kas masuk & keluar
+
+
+Ringkasan saldo akhir (saldo kas internal)
+Laporan Invoice Belum Terbayar (List berdasarkan tanggal terlama)
+
+
+Ekspor PDF/Excel (jika plan-nya mendukung)
+
+
+Tagihan dan Piutang
+Tambah Utang (utang karyawan atau customer)
+
+
+Pantau status: Lunas / Belum Lunas / Jatuh Tempo
+
+
+Reminder otomatis via email/WA (opsional)
+
+
+Pengeluaran Operasional
+Input pengeluaran rutin: BBM, sewa, perawatan kendaraan
+
+
+Upload bukti (nota, foto transfer)
+note : untuk admin bisa memasukkan request pengeluaran dengan mengupload bukti dan informasi pengeluaran operasional yang nantinya di menu superadmin bisa acc untuk dimasukkan ke pencatatan.
+
+
+9. 👥 Management Pengguna Multi Role & Log Akses
+CRUD Daftar Pengguna
+Log Aktivitas
+Role Tetap:
+Super Admin: Semua akses + approve keuangan
+
+
+Admin: Input/manajemen pengiriman, tambah pegawai
+
+
+Viewer: Lihat semua data, tidak bisa edit
+
+
+Kurir: Bisa update status kiriman sendiri, input laporan pengeluaran
+
+
+Marketing: Monitoring aktivitas kiriman pelanggan yang dibawahi
+
+
+Log Aktivitas:
+Siapa tambah/edit/hapus pengiriman
+
+
+Siapa update status / mengubah setting
+
+
+
+
+

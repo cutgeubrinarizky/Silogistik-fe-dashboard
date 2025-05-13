@@ -43,21 +43,15 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       label: "Manajemen Ongkir",
       path: "/shipping-rates",
     },
-    {
-      icon: <Wallet size={20} />,
-      label: "Manajemen Keuangan",
-      path: "/finance",
-    },
-    { icon: <Users size={20} />, label: "Managemen Pegawai", path: "/employees" },
-    { icon: <FileText size={20} />, label: "Label & Invoice", path: "/labels" },
-    { icon: <BarChart size={20} />, label: "Laporan", path: "/reports" },
-    { icon: <Settings size={20} />, label: "Pengaturan", path: "/settings" },
-    { icon: <UserRound size={20} />, label: "Pengguna", path: "/users" },
   ];
 
   // Menu item hanya untuk admin (role_id 1 atau 2)
   const adminNavItems = [
-    { icon: <Users size={20} />, label: "Manajemen Pegawai", path: "/employees" },
+    {
+      icon: <Users size={20} />,
+      label: "Manajemen Pegawai",
+      path: "/employees",
+    },
     { icon: <FileText size={20} />, label: "Label & Invoice", path: "/labels" },
     { icon: <BarChart size={20} />, label: "Laporan", path: "/reports" },
     { icon: <Settings size={20} />, label: "Pengaturan", path: "/settings" },
