@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -198,7 +198,7 @@ const AddressService = {
 // Service untuk data Kota
 const CityService = {
   // Mendapatkan daftar kota yang tersedia di sistem
-  getCities: async (search = "", page = 1, pageSize = 100) => {
+  getCities: async (search = "", page = 1, pageSize = 514) => {
     const params = new URLSearchParams({
       search,
       page,
@@ -245,10 +245,10 @@ const UserService = {
 
 // Service untuk tarif pengiriman
 const ShippingRateService = {
-  // Mendapatkan tarif berdasarkan kota asal dan tujuan
-  getRate: async (originCityId, destinationCityId) => {
+  // Mendapatkan semua tarif yang tersedia
+  getAllRates: async () => {
     const response = await fetch(
-      `${API_BASE_URL}/functions/v1/shipping_rates?origin_city_id=${originCityId}&destination_city_id=${destinationCityId}`,
+      `${API_BASE_URL}/functions/v1/shipping_rates`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -257,10 +257,6 @@ const ShippingRateService = {
     );
 
     if (!response.ok) {
-      // Mungkin tarif tidak ditemukan, tapi ini bukan error fatal
-      if (response.status === 404) {
-        return { success: false, data: null };
-      }
       throw new Error("Gagal mengambil data tarif pengiriman");
     }
 
@@ -498,6 +494,137 @@ const ShipmentForm = () => {
     queryFn: () => UserService.getUsersByRole(MARKETING_ROLE_ID),
   });
 
+  const calculateVolumeWeight = (item) => {
+    const length = parseFloat(item.length) || 0;
+    const width = parseFloat(item.width) || 0;
+    const height = parseFloat(item.height) || 0;
+    return (length * width * height) / DEFAULT_DIVISOR;
+  };
+
+  const calculateTotalWeight = (item) => {
+    const volumeWeight = calculateVolumeWeight(item);
+    const actualWeight = parseFloat(item.weight) || 0;
+    return Math.max(volumeWeight, actualWeight) * parseInt(item.quantity || 1);
+  };
+
+  // Menggunakan useMemo untuk menghitung total weight
+  const totalWeight = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const itemTotalWeight = item.totalWeight || calculateTotalWeight(item);
+      return sum + itemTotalWeight;
+    }, 0);
+  }, [items]);
+
+  // Gunakan useQuery untuk mengambil semua tarif SETELAH totalWeight diinisialisasi
+  const { data: allShippingRates, isLoading: isLoadingAllRates } = useQuery({
+    queryKey: ["all-shipping-rates"],
+    queryFn: () => ShippingRateService.getAllRates(),
+  });
+
+  // Fungsi untuk mencari tarif berdasarkan city_id
+  const findShippingRate = useCallback(
+    (originCityId, destinationCityId) => {
+      if (!allShippingRates?.data || !originCityId || !destinationCityId)
+        return null;
+
+      console.log("Finding shipping rate for:", {
+        originCityId,
+        destinationCityId,
+        availableRates: allShippingRates.data,
+      });
+
+      return allShippingRates.data.find(
+        (rate) =>
+          rate.origin_city.id === originCityId &&
+          rate.destination_city.id === destinationCityId
+      );
+    },
+    [allShippingRates]
+  );
+
+  // Effect untuk menghitung ulang tarif ketika city_id berubah atau ketika data tarif tersedia
+  useEffect(() => {
+    if (
+      !sender.address.city_id ||
+      !recipient.address.city_id ||
+      !allShippingRates?.data ||
+      shippingRate.isManualRate
+    ) {
+      return;
+    }
+
+    const rate = findShippingRate(
+      sender.address.city_id,
+      recipient.address.city_id
+    );
+    console.log("Found shipping rate:", rate);
+
+    if (rate) {
+      const ratePerKg = rate.price_per_kg || 0;
+      const totalCost = ratePerKg * totalWeight;
+      const discountAmount = parseFloat(discount) || 0;
+      const finalCost = Math.max(0, totalCost - discountAmount);
+
+      setShippingRate({
+        ratePerKg,
+        totalCost,
+        discount: discountAmount,
+        finalCost,
+        isManualRate: false,
+      });
+    } else {
+      // Jika tidak ada tarif yang cocok, beralih ke mode input manual
+      if (!shippingRate.isManualRate) {
+        toast.error(
+          "Tarif untuk rute ini belum tersedia. Silakan masukkan tarif secara manual."
+        );
+        setShippingRate({
+          ...shippingRate,
+          isManualRate: true,
+        });
+      }
+    }
+  }, [
+    sender.address.city_id,
+    recipient.address.city_id,
+    allShippingRates,
+    totalWeight,
+    discount,
+    findShippingRate,
+    shippingRate,
+  ]);
+
+  // Tambahkan logging untuk dropdown kota untuk memeriksa apakah city_id ditetapkan dengan benar
+  const handleSenderCityChange = (value) => {
+    const cityData = citiesData?.data?.cities?.find((c) => c.name === value);
+    console.log("Sender city selected:", value, "City data:", cityData);
+
+    setSender((prev) => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        city: value,
+        city_id: cityData?.id || null,
+        district: "",
+      },
+    }));
+  };
+
+  const handleRecipientCityChange = (value) => {
+    const cityData = citiesData?.data?.cities?.find((c) => c.name === value);
+    console.log("Recipient city selected:", value, "City data:", cityData);
+
+    setRecipient((prev) => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        city: value,
+        city_id: cityData?.id || null,
+        district: "",
+      },
+    }));
+  };
+
   // Mutation for creating/updating shipment
   const createMutation = useMutation({
     mutationFn: (data) => ShipmentService.createShipment(data),
@@ -609,76 +736,6 @@ const ShipmentForm = () => {
       }
     }
   }, [shipmentData, isDuplicate, isLoadingShipment]);
-
-  const calculateVolumeWeight = (item) => {
-    const length = parseFloat(item.length) || 0;
-    const width = parseFloat(item.width) || 0;
-    const height = parseFloat(item.height) || 0;
-    return (length * width * height) / DEFAULT_DIVISOR;
-  };
-
-  const calculateTotalWeight = (item) => {
-    const volumeWeight = calculateVolumeWeight(item);
-    const actualWeight = parseFloat(item.weight) || 0;
-    return Math.max(volumeWeight, actualWeight) * parseInt(item.quantity || 1);
-  };
-
-  // Menggunakan useMemo untuk menghitung total weight
-  const totalWeight = useMemo(() => {
-    return items.reduce((sum, item) => {
-      const itemTotalWeight = item.totalWeight || calculateTotalWeight(item);
-      return sum + itemTotalWeight;
-    }, 0);
-  }, [items]);
-
-  // Fetch shipping rate when sender city_id, recipient city_id, or totalWeight changes
-  const {
-    data: shippingRateData,
-    isLoading: isLoadingShippingRate,
-    error: shippingRateError,
-    refetch: refetchShippingRate,
-  } = useQuery({
-    queryKey: [
-      "shipping-rate",
-      sender.address.city_id,
-      recipient.address.city_id,
-    ],
-    queryFn: () =>
-      ShippingRateService.getRate(
-        sender.address.city_id,
-        recipient.address.city_id
-      ),
-    enabled: !!(
-      sender.address.city_id &&
-      recipient.address.city_id &&
-      !shippingRate.isManualRate
-    ),
-    onSuccess: (data) => {
-      if (data.success && data.data) {
-        const ratePerKg = data.data.rate_per_kg || 0;
-        const totalCost = ratePerKg * totalWeight;
-        const discountAmount = parseFloat(discount) || 0;
-        const finalCost = Math.max(0, totalCost - discountAmount);
-
-        setShippingRate({
-          ratePerKg,
-          totalCost,
-          discount: discountAmount,
-          finalCost,
-          isManualRate: false,
-        });
-      }
-    },
-    onError: () => {
-      setShippingRate({
-        ...shippingRate,
-        isManualRate: true,
-      });
-      toast.error(
-        "Tarif untuk rute ini belum tersedia. Silakan masukkan tarif secara manual."
-      );
-    },
-  });
 
   // Effect untuk menghitung biaya pengiriman dari tarif manual
   useEffect(() => {
@@ -813,6 +870,23 @@ const ShipmentForm = () => {
       return;
     }
 
+    const formattedSenderAddress = [
+      sender.address.province,
+      sender.address.city,
+      sender.address.district,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    const formattedRecipientAddress = [
+      recipient.address.province,
+      recipient.address.city,
+      recipient.address.district,
+      recipient.address.street,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
     // Prepare items data
     const formattedItems = items.map((item) => ({
       name: item.name,
@@ -830,11 +904,11 @@ const ShipmentForm = () => {
       tracking_number: trackingNumber,
       sender_name: sender.name,
       sender_phone: sender.phone,
-      sender_address: sender.address.street || "",
+      sender_address: formattedSenderAddress,
       sender_city_id: sender.address.city_id,
       recipient_name: recipient.name,
       recipient_phone: recipient.phone,
-      recipient_address: recipient.address.street || "",
+      recipient_address: formattedRecipientAddress,
       recipient_city_id: recipient.address.city_id,
       shipment_type: shipmentType,
       courier_id: courier,
@@ -851,6 +925,11 @@ const ShipmentForm = () => {
       notes: "",
       items: formattedItems,
     };
+
+    console.log(
+      "Mengirim data pengiriman:",
+      JSON.stringify(shipmentData, null, 2)
+    );
 
     if (isEdit && shipmentId) {
       // Update existing shipment
@@ -1248,23 +1327,7 @@ const ShipmentForm = () => {
                               <Label htmlFor="sender-city">Kota</Label>
                               <Select
                                 value={sender.address.city}
-                                onValueChange={(value) => {
-                                  const cityData =
-                                    citiesData?.data?.cities?.find(
-                                      (c) => c.name === value
-                                    );
-
-                                  setSender((prev) => ({
-                                    ...prev,
-                                    address: {
-                                      ...prev.address,
-                                      city: value,
-                                      city_id: cityData?.id || null,
-                                      // Reset district when city changes
-                                      district: "",
-                                    },
-                                  }));
-                                }}
+                                onValueChange={handleSenderCityChange}
                                 disabled={!sender.address.province}
                               >
                                 <SelectTrigger className="bg-white border-gray-200">
@@ -1282,22 +1345,15 @@ const ShipmentForm = () => {
                                       Memuat data...
                                     </SelectItem>
                                   ) : senderCities?.data ? (
-                                    senderCities.data.map((city) => {
-                                      // Cari kota dalam data Cities API
-                                      const cityData =
-                                        citiesData?.data?.cities?.find(
-                                          (c) => c.name === city
+                                    senderCities.data
+                                      .filter((city) => city !== "") // Filter out empty string
+                                      .map((city) => {
+                                        return (
+                                          <SelectItem key={city} value={city}>
+                                            {city}
+                                          </SelectItem>
                                         );
-
-                                      // Jika tidak ada dalam data Cities API, skip
-                                      if (!cityData) return null;
-
-                                      return (
-                                        <SelectItem key={city} value={city}>
-                                          {city}
-                                        </SelectItem>
-                                      );
-                                    })
+                                      })
                                   ) : (
                                     <SelectItem value="_no_data" disabled>
                                       Data tidak tersedia
@@ -1468,23 +1524,7 @@ const ShipmentForm = () => {
                               <Label htmlFor="recipient-city">Kota</Label>
                               <Select
                                 value={recipient.address.city}
-                                onValueChange={(value) => {
-                                  const cityData =
-                                    citiesData?.data?.cities?.find(
-                                      (c) => c.name === value
-                                    );
-
-                                  setRecipient((prev) => ({
-                                    ...prev,
-                                    address: {
-                                      ...prev.address,
-                                      city: value,
-                                      city_id: cityData?.id || null,
-                                      // Reset district when city changes
-                                      district: "",
-                                    },
-                                  }));
-                                }}
+                                onValueChange={handleRecipientCityChange}
                                 disabled={!recipient.address.province}
                               >
                                 <SelectTrigger className="bg-white border-gray-200">
@@ -1502,22 +1542,15 @@ const ShipmentForm = () => {
                                       Memuat data...
                                     </SelectItem>
                                   ) : recipientCities?.data ? (
-                                    recipientCities.data.map((city) => {
-                                      // Cari kota dalam data Cities API
-                                      const cityData =
-                                        citiesData?.data?.cities?.find(
-                                          (c) => c.name === city
+                                    recipientCities.data
+                                      .filter((city) => city !== "") // Filter out empty string
+                                      .map((city) => {
+                                        return (
+                                          <SelectItem key={city} value={city}>
+                                            {city}
+                                          </SelectItem>
                                         );
-
-                                      // Jika tidak ada dalam data Cities API, skip
-                                      if (!cityData) return null;
-
-                                      return (
-                                        <SelectItem key={city} value={city}>
-                                          {city}
-                                        </SelectItem>
-                                      );
-                                    })
+                                      })
                                   ) : (
                                     <SelectItem value="_no_data" disabled>
                                       Data tidak tersedia
@@ -1777,7 +1810,7 @@ const ShipmentForm = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pickup">Pickup</SelectItem>
-                          <SelectItem value="dropoff">Drop-off</SelectItem>
+                          <SelectItem value="drop-off">Drop-off</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
