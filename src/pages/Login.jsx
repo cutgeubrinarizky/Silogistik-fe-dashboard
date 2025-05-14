@@ -34,23 +34,75 @@ const Login = () => {
     setIsLoading(true);
 
     // login supabase
+    //   try {
+    //     const API_BASE_URL = VITE_SUPABASE_URL;
+
+    //     const response = await fetch(
+    //       `${API_BASE_URL}/auth/v1/token?grant_type=password`,
+    //       {
+    //         method: "POST",
+    //         headers: {
+    //           "Content-Type": "application/json",
+    //           apikey: VITE_SUPABASE_ANON_KEY, // Menambahkan header apikey
+    //         },
+    //         body: JSON.stringify({
+    //           email,
+    //           password,
+    //         }),
+    //       }
+    //     );
+
+    //     const data = await response.json();
+
+    //     if (!response.ok) {
+    //       throw new Error(data.error_description || data.error || "Login gagal");
+    //     }
+
+    //     // Simpan token ke localStorage
+    //     localStorage.setItem("access_token", data.access_token);
+    //     localStorage.setItem("refresh_token", data.refresh_token);
+
+    //     // Tambahkan ekspirasi token jika ada
+    //     if (data.expires_in) {
+    //       const expiresAt = new Date().getTime() + data.expires_in * 1000;
+    //       localStorage.setItem("expires_at", expiresAt.toString());
+    //     }
+
+    //     // Tambahkan data user jika ada
+    //     if (data.tenant_info) {
+    //       localStorage.setItem("tenant_info", JSON.stringify(data.tenant_info));
+    //     }
+    //     if (data.user) {
+    //       const roleId = data.user.user_metadata.role_id || 1;
+    //       const userInfo = data.user.user_metadata;
+    //       localStorage.setItem("role", JSON.stringify(roleId));
+    //       localStorage.setItem("user", JSON.stringify(userInfo));
+    //     }
+
+    //     toast.success("Login berhasil");
+    //     navigate("/");
+    //   } catch (error) {
+    //     console.error("Login error:", error);
+    //     toast.error(error.message || "Terjadi kesalahan saat login");
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
+
     try {
       const API_BASE_URL = VITE_SUPABASE_URL;
 
-      const response = await fetch(
-        `${API_BASE_URL}/auth/v1/token?grant_type=password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: VITE_SUPABASE_ANON_KEY, // Menambahkan header apikey
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/functions/v1/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // apikey: VITE_SUPABASE_SERVICE_ROLE_KEY,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
       const data = await response.json();
 
@@ -59,24 +111,37 @@ const Login = () => {
       }
 
       // Simpan token ke localStorage
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.refresh_token);
+      localStorage.setItem("access_token", data.data.access_token);
+      localStorage.setItem("refresh_token", data.data.refresh_token);
 
       // Tambahkan ekspirasi token jika ada
-      if (data.expires_in) {
-        const expiresAt = new Date().getTime() + data.expires_in * 1000;
+      if (data.data.expires_in) {
+        const expiresAt = new Date().getTime() + data.data.expires_in * 1000;
         localStorage.setItem("expires_at", expiresAt.toString());
       }
 
       // Tambahkan data user jika ada
-      if (data.tenant_info) {
-        localStorage.setItem("tenant_info", JSON.stringify(data.tenant_info));
+      if (data.data.tenant_info) {
+        localStorage.setItem(
+          "tenant_info",
+          JSON.stringify(data.data.tenant_info)
+        );
       }
-      if (data.user) {
-        const roleId = data.user.user_metadata.role_id || 1;
-        const userInfo = data.user.user_metadata;
+      if (data.data.user) {
+        const roleId = data.data.user.user_metadata.role_id || 1;
+        const userInfo = data.data.user.user_metadata;
         localStorage.setItem("role", JSON.stringify(roleId));
         localStorage.setItem("user", JSON.stringify(userInfo));
+      }
+
+      toast.success("Login berhasil");
+
+      // Tambahkan data user jika ada
+      if (data.data.tenant_info) {
+        localStorage.setItem(
+          "tenant_info",
+          JSON.stringify(data.data.tenant_info)
+        );
       }
 
       toast.success("Login berhasil");
@@ -88,71 +153,6 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-
-  //   try {
-  //     const API_BASE_URL = VITE_SUPABASE_URL;
-
-  //     const response = await fetch(`${API_BASE_URL}/functions/v1/auth/login`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         // apikey: VITE_SUPABASE_SERVICE_ROLE_KEY,
-  //       },
-  //       body: JSON.stringify({
-  //         email,
-  //         password,
-  //       }),
-  //     });
-
-  //     const data = await response.json();
-
-  //     if (!response.ok) {
-  //       throw new Error(data.error_description || data.error || "Login gagal");
-  //     }
-
-  //     // Simpan token ke localStorage
-  //     localStorage.setItem("access_token", data.data.access_token);
-  //     localStorage.setItem("refresh_token", data.data.refresh_token);
-
-  //     // Tambahkan ekspirasi token jika ada
-  //     if (data.data.expires_in) {
-  //       const expiresAt = new Date().getTime() + data.data.expires_in * 1000;
-  //       localStorage.setItem("expires_at", expiresAt.toString());
-  //     }
-
-  //     // Tambahkan data user jika ada
-  //     if (data.data.tenant_info) {
-  //       localStorage.setItem(
-  //         "tenant_info",
-  //         JSON.stringify(data.data.tenant_info)
-  //       );
-  //     }
-  //     if (data.data.user) {
-  //       const roleId = data.data.user.user_metadata.role_id || 1;
-  //       const userInfo = data.data.user.user_metadata;
-  //       localStorage.setItem("role", JSON.stringify(roleId));
-  //       localStorage.setItem("user", JSON.stringify(userInfo));
-  //     }
-
-  //     toast.success("Login berhasil");
-
-  //     // Tambahkan data user jika ada
-  //     if (data.data.tenant_info) {
-  //       localStorage.setItem(
-  //         "tenant_info",
-  //         JSON.stringify(data.data.tenant_info)
-  //       );
-  //     }
-
-  //     toast.success("Login berhasil");
-  //     navigate("/");
-  //   } catch (error) {
-  //     console.error("Login error:", error);
-  //     toast.error(error.message || "Terjadi kesalahan saat login");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">

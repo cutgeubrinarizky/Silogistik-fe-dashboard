@@ -1,8 +1,14 @@
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster as Sonner, toast } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import Shipments from "./pages/Shipments";
@@ -43,6 +49,31 @@ const AuthGuard = ({ children }) => {
   return children;
 };
 
+// Komponen Logout untuk menangani proses logout
+const Logout = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Hapus semua data autentikasi dari localStorage
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("expires_at");
+    localStorage.removeItem("user");
+    localStorage.removeItem("tenant_info");
+    localStorage.removeItem("role");
+
+    // Tampilkan notifikasi sukses
+    setTimeout(() => {
+      toast.success("Berhasil logout");
+    }, 300);
+
+    // Redirect ke halaman login
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
+  return null; // Komponen ini tidak perlu merender apapun
+};
+
 const App = () => {
   const [isReady, setIsReady] = useState(false);
 
@@ -64,6 +95,7 @@ const App = () => {
           <Routes>
             {/* Rute publik */}
             <Route path="/login" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
 
             {/* Rute terproteksi */}
             <Route

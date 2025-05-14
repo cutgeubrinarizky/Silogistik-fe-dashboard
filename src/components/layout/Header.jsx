@@ -47,14 +47,8 @@ const Header = ({ onMenuClick }) => {
   }, []);
 
   const handleLogout = () => {
-    // Hapus semua data autentikasi dari localStorage
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("expires_at");
-    localStorage.removeItem("user");
-
-    toast.success("Berhasil logout");
-    navigate("/login");
+    // Arahkan ke rute logout yang akan menghapus semua data otentikasi
+    navigate("/logout");
   };
 
   return (
