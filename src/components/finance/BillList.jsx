@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,8 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import UpdatePaymentModal from "./UpdatePaymentModal";
+import InvoiceContent from "./InvoicePrintModal";
+import html2pdf from "html2pdf.js";
 
 // Helper function untuk mendapatkan badge status
 const getStatusBadge = (status) => {
@@ -77,6 +79,9 @@ const BillList = ({ bills = [], onUpdatePayment }) => {
   });
   const [selectedBill, setSelectedBill] = useState(null);
   const [showUpdatePayment, setShowUpdatePayment] = useState(false);
+  const [invoicePaymentHistory, setInvoicePaymentHistory] = useState([]);
+  const invoiceRef = useRef();
+  const [invoiceData, setInvoiceData] = useState({ bill: null, paymentHistory: [] });
   const navigate = useNavigate();
 
   const handleUpdatePayment = (bill, e) => {
@@ -91,8 +96,22 @@ const BillList = ({ bills = [], onUpdatePayment }) => {
   };
 
   const handlePrint = (bill) => {
-    // Implementasi cetak bukti pembayaran
-    toast.success("Mencetak bukti pembayaran...");
+    // Ambil riwayat pembayaran jika ada (misal bill.payment_history)
+    setInvoiceData({ bill, paymentHistory: bill.payment_history || [] });
+    setTimeout(() => {
+      if (invoiceRef.current) {
+        html2pdf()
+          .set({
+            margin: 0,
+            filename: `Invoice-${bill.tracking_number}.pdf`,
+            html2canvas: { scale: 1.2 },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            pagebreak: { mode: ["avoid-all"] },
+          })
+          .from(invoiceRef.current)
+          .save();
+      }
+    }, 100); // Tunggu render invoice
   };
 
   const handleDownload = (bill) => {
@@ -100,12 +119,13 @@ const BillList = ({ bills = [], onUpdatePayment }) => {
     toast.success("Mengunduh bukti pembayaran...");
   };
 
-  // Filter tagihan berdasarkan pencarian dan filter
+  // Filter bills berdasarkan pencarian dan filter
   const filteredBills = bills.filter(
-    (b) =>
-      (filter.status === "all" || b.status === filter.status) &&
-      (b.tracking_number.toLowerCase().includes(search.toLowerCase()) ||
-        b.recipient_name.toLowerCase().includes(search.toLowerCase()))
+    (bill) =>
+      (filter.status === "all" || bill.payment_status === filter.status) &&
+      ((bill.tracking_number || "").toLowerCase().includes(search.toLowerCase()) ||
+        (bill.recipient_name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (bill.sender_name || "").toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -139,13 +159,13 @@ const BillList = ({ bills = [], onUpdatePayment }) => {
             }
           >
             <SelectTrigger className="w-[140px] bg-gray-50/80 border-0 focus:ring-1 focus:ring-[#FF6B2C]/10 text-sm">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="Semua Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Status</SelectItem>
               <SelectItem value="unpaid">Belum Lunas</SelectItem>
-              <SelectItem value="partial">Cicilan</SelectItem>
               <SelectItem value="paid">Lunas</SelectItem>
+              <SelectItem value="partial">Sebagian</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -159,6 +179,9 @@ const BillList = ({ bills = [], onUpdatePayment }) => {
               </TableHead>
               <TableHead className="text-[#0C4A6E]/70 font-medium">
                 No. Resi
+              </TableHead>
+              <TableHead className="text-[#0C4A6E]/70 font-medium">
+                Pengirim
               </TableHead>
               <TableHead className="text-[#0C4A6E]/70 font-medium">
                 Penerima
@@ -178,7 +201,7 @@ const BillList = ({ bills = [], onUpdatePayment }) => {
             {filteredBills.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="text-center py-10 text-gray-500"
                 >
                   Tidak ada data tagihan
@@ -191,46 +214,58 @@ const BillList = ({ bills = [], onUpdatePayment }) => {
                   className="hover:bg-gray-50/80 transition-all border-b border-gray-100"
                 >
                   <TableCell className="text-[#0C4A6E]/80">
-                    {new Date(bill.created_at).toLocaleDateString("id-ID")}
+                    {new Date(bill.created_at || bill.date).toLocaleDateString("id-ID")}
+                  </TableCell>
+                  <TableCell className="font-medium text-[#0C4A6E]">
+                    {bill.tracking_number}
                   </TableCell>
                   <TableCell className="text-[#0C4A6E]/80">
-                    {bill.tracking_number}
+                    {bill.sender_name}
                   </TableCell>
                   <TableCell className="text-[#0C4A6E]/80">
                     {bill.recipient_name}
                   </TableCell>
                   <TableCell className="font-medium text-[#0C4A6E]">
-                    Rp {bill.final_shipping_cost?.toLocaleString("id-ID")}
+                    Rp {(bill.final_shipping_cost || 0).toLocaleString("id-ID")}
                   </TableCell>
-                  <TableCell>{getStatusBadge(bill.payment_status)}</TableCell>
+                  <TableCell className="pointer-events-none">
+                    <Badge
+                      className={
+                        bill.payment_status === "paid"
+                          ? "bg-green-100 text-green-700 border-green-200"
+                          : bill.payment_status === "partial"
+                          ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                          : "bg-[#FF6B2C]/10 text-[#FF6B2C] border-[#FF6B2C]/20"
+                      }
+                    >
+                      {bill.payment_status === "paid"
+                        ? "Lunas"
+                        : bill.payment_status === "partial"
+                        ? "Sebagian"
+                        : "Belum Lunas"}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-[#FF6B2C] hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/10"
-                        onClick={(e) => handleUpdatePayment(bill, e)}
-                        title="Update Pembayaran"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      {bill.payment_status !== "paid" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-[#FF6B2C] hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/10"
+                          onClick={(e) => handleUpdatePayment(bill, e)}
+                          title="Update Transaksi"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-[#FF6B2C] hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/10"
                         onClick={() => handlePrint(bill)}
-                        title="Cetak Bukti"
+                        title="Cetak Invoice"
                       >
                         <Printer className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-[#FF6B2C] hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/10"
-                        onClick={() => handleDownload(bill)}
-                        title="Download Bukti"
-                      >
-                        <Download className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -251,6 +286,13 @@ const BillList = ({ bills = [], onUpdatePayment }) => {
           onUpdate={handlePaymentUpdate}
         />
       )}
+
+      {/* Render invoice tersembunyi untuk html2pdf */}
+      <div style={{ display: "none" }}>
+        <div ref={invoiceRef}>
+          <InvoiceContent bill={invoiceData.bill} paymentHistory={invoiceData.paymentHistory} />
+        </div>
+      </div>
     </Card>
   );
 };

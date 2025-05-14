@@ -240,47 +240,33 @@ const TransactionList = () => {
     queryFn: () => ShipmentService.getAllShipments(),
   });
 
-  // Transform data pengiriman menjadi format transaksi
-  const transformShipmentsToTransactions = (shipments) => {
-    return shipments.map((shipment) => ({
-      id: shipment.id,
-      date: shipment.created_at,
-      description: `Pembayaran pengiriman ${shipment.tracking_number} (${shipment.service_type})`,
-      amount: shipment.final_shipping_cost,
-      type: "income",
-      status: shipment.payment_status,
-      category: "Pengiriman",
-      tracking_number: shipment.tracking_number,
-      recipient_name: shipment.recipient_name,
-      service_type: shipment.service_type,
-      origin: shipment.origin,
-      destination: shipment.destination,
-      weight: shipment.weight,
-    }));
-  };
-
+  // Konversi data pengiriman menjadi transaksi pembayaran
   const transactions = shipmentsData?.data
-    ? transformShipmentsToTransactions(shipmentsData.data)
+    ? shipmentsData.data
+        .filter(shipment => shipment.payment_history && shipment.payment_history.length > 0)
+        .flatMap(shipment => 
+          (shipment.payment_history || []).map(payment => ({
+            id: `${shipment.id}-${payment.id}`,
+            date: payment.date || new Date().toISOString(),
+            tracking_number: shipment.tracking_number,
+            recipient_name: shipment.recipient_name,
+            amount: payment.amount,
+            payment_method: payment.method || "cash",
+            payment_type: payment.type || "income",
+            description: `Pembayaran ${payment.is_full ? "lunas" : "sebagian"} untuk pengiriman ${shipment.tracking_number}`,
+            status: "success"
+          }))
+        )
     : [];
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const matchesSearch =
-      transaction.description
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      transaction.tracking_number
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      transaction.recipient_name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-    const matchesType = filterType === "all" || transaction.type === filterType;
-    const matchesCategory =
-      filterCategory === "all" || transaction.category === filterCategory;
-    const matchesStatus =
-      filterStatus === "all" || transaction.status === filterStatus;
-    return matchesSearch && matchesType && matchesCategory && matchesStatus;
-  });
+  // Filter transaksi berdasarkan pencarian dan filter
+  const filteredTransactions = transactions.filter(
+    (transaction) =>
+      (filterType === "all" || transaction.payment_type === filterType) &&
+      ((transaction.tracking_number || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (transaction.recipient_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (transaction.description || "").toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const handleEdit = (transaction) => {
     navigate("/finance/transactions/edit", { state: { transaction } });
@@ -393,16 +379,13 @@ const TransactionList = () => {
                 Tanggal
               </TableHead>
               <TableHead className="text-[#0C4A6E]/70 font-medium">
-                Deskripsi
-              </TableHead>
-              <TableHead className="text-[#0C4A6E]/70 font-medium">
                 No. Resi
               </TableHead>
               <TableHead className="text-[#0C4A6E]/70 font-medium">
-                Penerima
+                Keterangan
               </TableHead>
               <TableHead className="text-[#0C4A6E]/70 font-medium">
-                Kategori
+                Metode
               </TableHead>
               <TableHead className="text-[#0C4A6E]/70 font-medium">
                 Jumlah
@@ -419,7 +402,7 @@ const TransactionList = () => {
             {filteredTransactions.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={7}
                   className="text-center py-10 text-gray-500"
                 >
                   Tidak ada data transaksi
@@ -434,24 +417,30 @@ const TransactionList = () => {
                   <TableCell className="text-[#0C4A6E]/80">
                     {new Date(transaction.date).toLocaleDateString("id-ID")}
                   </TableCell>
+                  <TableCell className="font-medium text-[#0C4A6E]">
+                    {transaction.tracking_number}
+                  </TableCell>
                   <TableCell className="text-[#0C4A6E]/80">
                     {transaction.description}
                   </TableCell>
-                  <TableCell>{transaction.tracking_number}</TableCell>
-                  <TableCell>{transaction.recipient_name}</TableCell>
-                  <TableCell>
-                    {getCategoryBadge(transaction.category)}
+                  <TableCell className="text-[#0C4A6E]/80 capitalize">
+                    {transaction.payment_method}
                   </TableCell>
-                  <TableCell
-                    className={`font-medium ${
-                      transaction.type === "income"
+                  <TableCell className={`font-medium ${
+                    transaction.payment_type === "income" 
                         ? "text-green-600"
                         : "text-red-600"
-                    }`}
-                  >
+                  }`}>
+                    {transaction.payment_type === "income" ? "+" : "-"}
                     Rp {transaction.amount.toLocaleString("id-ID")}
                   </TableCell>
-                  <TableCell>{getStatusBadge(transaction.status)}</TableCell>
+                  <TableCell>
+                    <Badge
+                      className="bg-green-100 text-green-700 border-green-200"
+                    >
+                      Berhasil
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <Button
@@ -459,7 +448,7 @@ const TransactionList = () => {
                         size="icon"
                         className="h-8 w-8 text-[#FF6B2C] hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/10"
                         onClick={() => handlePrint(transaction)}
-                        title="Cetak Bukti"
+                        title="Cetak"
                       >
                         <Printer className="h-4 w-4" />
                       </Button>
@@ -468,7 +457,7 @@ const TransactionList = () => {
                         size="icon"
                         className="h-8 w-8 text-[#FF6B2C] hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/10"
                         onClick={() => handleDownload(transaction)}
-                        title="Download Bukti"
+                        title="Download"
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -516,3 +505,4 @@ const TransactionList = () => {
 };
 
 export default TransactionList;
+
