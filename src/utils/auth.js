@@ -59,7 +59,7 @@ export const refreshToken = async () => {
   }
   
   try {
-    const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
+    const API_BASE_URL = VITE_SUPABASE_URL  ;
 
     const response = await fetch(`${API_BASE_URL}/auth/v1/token?grant_type=refresh_token`, {
       method: "POST",

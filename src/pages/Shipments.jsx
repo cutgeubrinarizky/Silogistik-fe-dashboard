@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY } from "../utils/apiConfig";
 
-const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
+const API_BASE_URL = VITE_SUPABASE_URL;
 
 // API Service untuk Shipment
 const ShipmentService = {

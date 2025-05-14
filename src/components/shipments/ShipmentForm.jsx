@@ -267,15 +267,6 @@ const ShippingRateService = {
 const COURIER_ROLE_ID = 3;
 const MARKETING_ROLE_ID = 4;
 
-// Data tarif pengiriman (contoh)
-const shippingRates = [
-  { id: 1, origin: "Jakarta", destination: "Surabaya", price: 15000 },
-  { id: 2, origin: "Jakarta", destination: "Bandung", price: 12000 },
-  { id: 3, origin: "Jakarta", destination: "Medan", price: 25000 },
-  { id: 4, origin: "Surabaya", destination: "Jakarta", price: 15000 },
-  { id: 5, origin: "Bandung", destination: "Jakarta", price: 12000 },
-];
-
 const ShipmentForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -526,12 +517,6 @@ const ShipmentForm = () => {
       if (!allShippingRates?.data || !originCityId || !destinationCityId)
         return null;
 
-      console.log("Finding shipping rate for:", {
-        originCityId,
-        destinationCityId,
-        availableRates: allShippingRates.data,
-      });
-
       return allShippingRates.data.find(
         (rate) =>
           rate.origin_city.id === originCityId &&
@@ -556,7 +541,6 @@ const ShipmentForm = () => {
       sender.address.city_id,
       recipient.address.city_id
     );
-    console.log("Found shipping rate:", rate);
 
     if (rate) {
       const ratePerKg = rate.price_per_kg || 0;
@@ -596,7 +580,6 @@ const ShipmentForm = () => {
   // Tambahkan logging untuk dropdown kota untuk memeriksa apakah city_id ditetapkan dengan benar
   const handleSenderCityChange = (value) => {
     const cityData = citiesData?.data?.cities?.find((c) => c.name === value);
-    console.log("Sender city selected:", value, "City data:", cityData);
 
     setSender((prev) => ({
       ...prev,
@@ -611,7 +594,6 @@ const ShipmentForm = () => {
 
   const handleRecipientCityChange = (value) => {
     const cityData = citiesData?.data?.cities?.find((c) => c.name === value);
-    console.log("Recipient city selected:", value, "City data:", cityData);
 
     setRecipient((prev) => ({
       ...prev,
@@ -815,9 +797,6 @@ const ShipmentForm = () => {
     // Reset nilai input manual
     setManualRatePerKg("");
     setManualTotalCost("");
-
-    // Refetch tarif
-    refetchShippingRate();
   };
 
   const handleAddItem = () => {
@@ -924,11 +903,6 @@ const ShipmentForm = () => {
       notes: "",
       items: formattedItems,
     };
-
-    console.log(
-      "Mengirim data pengiriman:",
-      JSON.stringify(shipmentData, null, 2)
-    );
 
     if (isEdit && shipmentId) {
       // Update existing shipment
