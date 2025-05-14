@@ -181,7 +181,7 @@ const Finance = () => {
                   data-[state=active]:bg-[#FF6B2C] data-[state=active]:text-white
                   data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-[#FF6B2C]"
               >
-                Transaksi & Invoice
+                Transaksi
               </TabsTrigger>
               <TabsTrigger
                 value="bills"

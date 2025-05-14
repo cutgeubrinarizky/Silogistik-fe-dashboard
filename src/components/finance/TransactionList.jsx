@@ -39,6 +39,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { VITE_SUPABASE_URL } from "../../utils/apiConfig";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
 
@@ -223,12 +224,25 @@ const getPaymentMethodBadge = (method) => {
   );
 };
 
+const defaultNewTransaction = {
+  date: new Date().toISOString().slice(0, 10),
+  tracking_number: "",
+  description: "",
+  payment_method: "cash",
+  payment_type: "income",
+  category: "invoice",
+  amount: "",
+};
+
 const TransactionList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const navigate = useNavigate();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTransaction, setNewTransaction] = useState(defaultNewTransaction);
+  const [localTransactions, setLocalTransactions] = useState([]);
 
   // Fetch data pengiriman untuk transaksi
   const {
@@ -268,6 +282,9 @@ const TransactionList = () => {
         (transaction.description || "").toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  // Gabungkan transaksi dari API dan lokal
+  const allTransactions = [...localTransactions, ...filteredTransactions];
+
   const handleEdit = (transaction) => {
     navigate("/finance/transactions/edit", { state: { transaction } });
   };
@@ -287,6 +304,24 @@ const TransactionList = () => {
   const handleDownload = (transaction) => {
     // Implementasi download bukti transaksi
     toast.success("Mengunduh bukti transaksi...");
+  };
+
+  const handleAddTransaction = () => {
+    setShowAddModal(true);
+    setNewTransaction(defaultNewTransaction);
+  };
+
+  const handleSaveTransaction = () => {
+    setLocalTransactions([
+      {
+        ...newTransaction,
+        id: `local-${Date.now()}`,
+        amount: Number(newTransaction.amount),
+        status: "success",
+      },
+      ...localTransactions,
+    ]);
+    setShowAddModal(false);
   };
 
   if (isLoadingShipments) {
@@ -362,12 +397,10 @@ const TransactionList = () => {
           <Button
             size="sm"
             className="bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white shadow-sm px-4 h-9"
-            asChild
+            onClick={handleAddTransaction}
           >
-            <Link to="/finance/transactions/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Transaksi Baru
-            </Link>
+            <Plus className="h-4 w-4 mr-2" />
+            Transaksi Baru
           </Button>
         </div>
       </CardHeader>
@@ -399,7 +432,7 @@ const TransactionList = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTransactions.length === 0 ? (
+            {allTransactions.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
@@ -409,7 +442,7 @@ const TransactionList = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredTransactions.map((transaction) => (
+              allTransactions.map((transaction) => (
                 <TableRow
                   key={transaction.id}
                   className="hover:bg-gray-50/80 transition-all border-b border-gray-100"
@@ -500,6 +533,61 @@ const TransactionList = () => {
           </TableBody>
         </Table>
       </CardContent>
+
+      {/* Modal Tambah Transaksi */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="max-w-lg">
+          <div className="text-xl font-bold mb-4 text-[#0C4A6E]">Tambah Transaksi</div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm mb-1">Tanggal</label>
+              <input type="date" className="w-full border rounded px-2 py-1" value={newTransaction.date} onChange={e => setNewTransaction({...newTransaction, date: e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">No. Resi (opsional)</label>
+              <input type="text" className="w-full border rounded px-2 py-1" value={newTransaction.tracking_number} onChange={e => setNewTransaction({...newTransaction, tracking_number: e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Keterangan</label>
+              <input type="text" className="w-full border rounded px-2 py-1" value={newTransaction.description} onChange={e => setNewTransaction({...newTransaction, description: e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Metode Pembayaran</label>
+              <select className="w-full border rounded px-2 py-1" value={newTransaction.payment_method} onChange={e => setNewTransaction({...newTransaction, payment_method: e.target.value})}>
+                <option value="cash">Tunai</option>
+                <option value="transfer">Transfer</option>
+                <option value="qris">QRIS</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Jumlah</label>
+              <input type="number" className="w-full border rounded px-2 py-1" value={newTransaction.amount} onChange={e => setNewTransaction({...newTransaction, amount: e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Tipe Transaksi</label>
+              <select className="w-full border rounded px-2 py-1" value={newTransaction.payment_type} onChange={e => setNewTransaction({...newTransaction, payment_type: e.target.value})}>
+                <option value="income">Pemasukan</option>
+                <option value="expense">Pengeluaran</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Kategori</label>
+              <select className="w-full border rounded px-2 py-1" value={newTransaction.category} onChange={e => setNewTransaction({...newTransaction, category: e.target.value})}>
+                <option value="invoice">Invoice</option>
+                <option value="operasional">Operasional</option>
+                <option value="gaji">Gaji</option>
+                <option value="bbm">BBM</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="lainnya">Lainnya</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>Batal</Button>
+            <Button onClick={handleSaveTransaction} className="bg-[#FF6B2C] text-white">Simpan</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
