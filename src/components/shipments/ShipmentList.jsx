@@ -51,16 +51,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import UpdatePaymentModal from "../finance/UpdatePaymentModal";
+import UpdateStatusModal from "../UpdateStatusModal";
 
 // Helper function to get status badge
 const getStatusBadge = (status) => {
   const variants = {
-    pickup: {
-      label: "Pickup",
+    picked_up: {
+      label: "Sedang di Pickup",
       variant: "warning",
       className: "bg-[#FF6B2C]/10 text-[#FF6B2C] border-[#FF6B2C]/20",
     },
-    transit: {
+    pending_delivery: {
+      label: "Menunggu Pengiriman",
+      variant: "warning",
+      className: "bg-[#FF6B2C]/10 text-[#FF6B2C] border-[#FF6B2C]/20",
+    },
+    in_transit: {
       label: "Dalam Perjalanan",
       variant: "info",
       className: "bg-[#0C4A6E]/10 text-[#0C4A6E] border-[#0C4A6E]/20",
@@ -70,8 +76,8 @@ const getStatusBadge = (status) => {
       variant: "success",
       className: "bg-green-100 text-green-700 border-green-200",
     },
-    failed: {
-      label: "Gagal",
+    failed_delivery: {
+      label: "Pengiriman Gagal",
       variant: "destructive",
       className: "bg-red-100 text-red-700 border-red-200",
     },
@@ -87,186 +93,6 @@ const getStatusBadge = (status) => {
     <Badge variant={statusInfo.variant} className={statusInfo.className}>
       {statusInfo.label}
     </Badge>
-  );
-};
-
-const UpdateStatusModal = ({ shipment, onClose, onUpdate }) => {
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [updateDate, setUpdateDate] = useState(
-    format(new Date(), "yyyy-MM-dd")
-  );
-  const [notes, setNotes] = useState("");
-
-  const statusHistory = [
-    {
-      status: "Pickup",
-      date: "2023-05-01 09:30",
-      description: "Paket telah di-pickup dari pengirim",
-    },
-    {
-      status: "In Transit",
-      date: "2023-05-02 14:15",
-      description: "Paket dalam perjalanan",
-    },
-    {
-      status: "Delivered",
-      date: "2023-05-03 16:20",
-      description: "Paket telah diterima oleh Budi",
-    },
-  ];
-
-  const getStatusIcon = (status) => {
-    switch (status.toLowerCase()) {
-      case "pickup":
-        return <Box className="h-4 w-4 text-[#FF6B2C]" />;
-      case "in transit":
-        return <Truck className="h-4 w-4 text-[#0C4A6E]" />;
-      case "delivered":
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-      default:
-        return null;
-    }
-  };
-
-  const handleUpdate = () => {
-    if (!selectedStatus) {
-      toast.error("Silakan pilih status pengiriman");
-      return;
-    }
-    onUpdate(shipment.id, {
-      status: selectedStatus,
-      date: updateDate,
-      notes: notes,
-    });
-    onClose();
-  };
-
-  return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-[700px] p-0">
-        <div className="p-5">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-5">
-            <h2 className="text-lg font-semibold text-[#0C4A6E]">
-              Update Status Pengiriman
-            </h2>
-          </div>
-
-          {/* Nomor Resi */}
-          <div className="mb-5">
-            <div className="text-sm text-gray-500 mb-1.5">Nomor Resi</div>
-            <div className="p-2.5 bg-gray-50 rounded-lg text-[#0C4A6E] font-medium text-sm">
-              {shipment?.trackingNumber}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-[1fr,1.2fr] gap-6">
-            {/* Form - Left Column */}
-            <div>
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm text-gray-500 mb-1.5">Status</div>
-                  <Select
-                    value={selectedStatus}
-                    onValueChange={setSelectedStatus}
-                  >
-                    <SelectTrigger className="w-full bg-white border-gray-200 h-10 text-sm">
-                      <SelectValue placeholder="Pilih status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pickup">Pickup</SelectItem>
-                      <SelectItem value="transit">In Transit</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                      <SelectItem value="failed">Failed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 mb-1.5">
-                    Tanggal Update
-                  </div>
-                  <Input
-                    type="date"
-                    value={updateDate}
-                    onChange={(e) => setUpdateDate(e.target.value)}
-                    className="bg-white border-gray-200 h-10 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 mb-1.5">Keterangan</div>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Masukkan keterangan (opsional)"
-                    className="min-h-[100px] bg-white border-gray-200 text-sm resize-none focus:ring-1 focus:ring-[#0C4A6E]"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    onClick={onClose}
-                    className="h-9 px-4 text-sm font-medium hover:bg-gray-50"
-                  >
-                    Batal
-                  </Button>
-                  <Button
-                    onClick={handleUpdate}
-                    className="bg-[#0C4A6E] hover:bg-[#0C4A6E]/90 text-white h-9 px-4 text-sm font-medium"
-                  >
-                    Update Status
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* History Status - Right Column */}
-            <div className="border-l pl-6">
-              <div className="text-sm text-gray-500 mb-4">History Status</div>
-              <div className="relative">
-                {statusHistory.map((item, index) => (
-                  <div key={index} className="flex gap-3 mb-6 relative group">
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-                          index === statusHistory.length - 1
-                            ? "bg-green-100 group-hover:bg-green-200"
-                            : "bg-gray-100 group-hover:bg-gray-200"
-                        }`}
-                      >
-                        {getStatusIcon(item.status)}
-                      </div>
-                      {index !== statusHistory.length - 1 && (
-                        <div className="absolute top-7 left-3.5 w-[1px] h-12 bg-gray-200 group-hover:bg-gray-300 transition-colors"></div>
-                      )}
-                    </div>
-                    <div className="group-hover:bg-gray-50 p-2 rounded-lg transition-colors -ml-2 flex-1">
-                      <div className="font-medium text-[#0C4A6E] text-sm">
-                        {item.status === "pickup"
-                          ? "Pickup"
-                          : item.status === "transit"
-                          ? "In Transit"
-                          : item.status === "delivered"
-                          ? "Delivered"
-                          : item.status}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {item.date}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        {item.description}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 };
 
@@ -291,104 +117,6 @@ const ShipmentList = ({
   const [showUpdateStatus, setShowUpdateStatus] = useState(false);
   const [showUpdatePayment, setShowUpdatePayment] = useState(false);
   const navigate = useNavigate();
-
-  // Data dummy untuk pengiriman
-  const dummyShipments = [
-    {
-      id: 1,
-      tracking_number: "TRK-2024-001",
-      sender_name: "PT Maju Jaya",
-      recipient_name: "Budi Santoso",
-      sender_city: { name: "Jakarta" },
-      recipient_city: { name: "Bandung" },
-      status: "pickup",
-      total_chargeable_weight: 2.5,
-      courier: { users: { name: "Agus Subagyo" } },
-      created_at: "2024-03-20",
-      final_shipping_cost: 150000,
-      payment_status: "unpaid",
-      service_type: "Regular",
-      items: [
-        { weight: 1.5, quantity: 1 },
-        { weight: 1.0, quantity: 1 }
-      ]
-    },
-    {
-      id: 2,
-      tracking_number: "TRK-2024-002",
-      sender_name: "CV Sejahtera",
-      recipient_name: "Ani Wijaya",
-      sender_city: { name: "Surabaya" },
-      recipient_city: { name: "Malang" },
-      status: "transit",
-      total_chargeable_weight: 3.0,
-      courier: { users: { name: "Budi Santoso" } },
-      created_at: "2024-03-19",
-      final_shipping_cost: 200000,
-      payment_status: "partial",
-      service_type: "Express",
-      items: [
-        { weight: 3.0, quantity: 1 }
-      ]
-    },
-    {
-      id: 3,
-      tracking_number: "TRK-2024-003",
-      sender_name: "UD Makmur",
-      recipient_name: "Dewi Lestari",
-      sender_city: { name: "Yogyakarta" },
-      recipient_city: { name: "Semarang" },
-      status: "delivered",
-      total_chargeable_weight: 1.5,
-      courier: { users: { name: "Citra Dewi" } },
-      created_at: "2024-03-18",
-      final_shipping_cost: 120000,
-      payment_status: "paid",
-      service_type: "Regular",
-      items: [
-        { weight: 1.5, quantity: 1 }
-      ]
-    },
-    {
-      id: 4,
-      tracking_number: "TRK-2024-004",
-      sender_name: "PT Abadi Sentosa",
-      recipient_name: "Rudi Hartono",
-      sender_city: { name: "Medan" },
-      recipient_city: { name: "Palembang" },
-      status: "failed",
-      total_chargeable_weight: 4.0,
-      courier: { users: { name: "Dian Pratama" } },
-      created_at: "2024-03-17",
-      final_shipping_cost: 250000,
-      payment_status: "unpaid",
-      service_type: "Express",
-      items: [
-        { weight: 4.0, quantity: 1 }
-      ]
-    },
-    {
-      id: 5,
-      tracking_number: "TRK-2024-005",
-      sender_name: "CV Berkah",
-      recipient_name: "Siti Aminah",
-      sender_city: { name: "Makassar" },
-      recipient_city: { name: "Manado" },
-      status: "pickup",
-      total_chargeable_weight: 2.0,
-      courier: { users: { name: "Agus Subagyo" } },
-      created_at: "2024-03-16",
-      final_shipping_cost: 180000,
-      payment_status: "unpaid",
-      service_type: "Regular",
-      items: [
-        { weight: 2.0, quantity: 1 }
-      ]
-    }
-  ];
-
-  // Gunakan data dummy jika tidak ada data dari props
-  const shipmentsToDisplay = shipments.length > 0 ? shipments : dummyShipments;
 
   // Debug untuk memeriksa struktur data
   useEffect(() => {
@@ -422,6 +150,14 @@ const ShipmentList = ({
     e.stopPropagation();
     setSelectedShipment(shipment);
     setShowUpdateStatus(true);
+  };
+
+  const handleStatusUpdated = () => {
+    // Setelah status diperbarui, refresh data
+    refetch();
+    setShowUpdateStatus(false);
+    setSelectedShipment(null);
+    toast.success("Status pengiriman berhasil diperbarui");
   };
 
   const handlePaymentUpdate = (id, updateData) => {
@@ -462,7 +198,7 @@ const ShipmentList = ({
   };
 
   // Ensure shipments is an array
-  const shipmentsArray = Array.isArray(shipmentsToDisplay) ? shipmentsToDisplay : [];
+  const shipmentsArray = Array.isArray(shipments) ? shipments : [];
   console.log("ShipmentList processed shipments:", shipmentsArray);
 
   // Filter shipments berdasarkan search dan filter
@@ -528,10 +264,13 @@ const ShipmentList = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="pickup">Pickup</SelectItem>
-                <SelectItem value="transit">Dalam Perjalanan</SelectItem>
+                <SelectItem value="picked_up">Pickup</SelectItem>
+                <SelectItem value="in_transit">Dalam Perjalanan</SelectItem>
                 <SelectItem value="delivered">Terkirim</SelectItem>
-                <SelectItem value="failed">Gagal</SelectItem>
+                <SelectItem value="failed_delivery">Gagal</SelectItem>
+                <SelectItem value="pending_delivery">
+                  Menunggu Pengiriman
+                </SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -545,10 +284,17 @@ const ShipmentList = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Kurir</SelectItem>
-                <SelectItem value="Agus Subagyo">Agus Subagyo</SelectItem>
-                <SelectItem value="Budi Santoso">Budi Santoso</SelectItem>
-                <SelectItem value="Citra Dewi">Citra Dewi</SelectItem>
-                <SelectItem value="Dian Pratama">Dian Pratama</SelectItem>
+                {Array.from(
+                  new Set(
+                    shipmentsArray
+                      .map((s) => s.courier?.users?.name || s.courier)
+                      .filter(Boolean)
+                  )
+                ).map((courier) => (
+                  <SelectItem key={courier} value={courier}>
+                    {courier}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select
@@ -562,8 +308,19 @@ const ShipmentList = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Jenis</SelectItem>
-                <SelectItem value="pickup">Pickup</SelectItem>
-                <SelectItem value="dropoff">Drop-off</SelectItem>
+                {Array.from(
+                  new Set(
+                    shipmentsArray.map((s) => s.shipment_type).filter(Boolean)
+                  )
+                ).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type === "pickup"
+                      ? "Pickup"
+                      : type === "dropoff"
+                      ? "Drop-off"
+                      : type}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button
@@ -580,6 +337,23 @@ const ShipmentList = ({
             <div className="flex justify-center items-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-[#0C4A6E]" />
               <span className="ml-3 text-[#0C4A6E]">Memuat data...</span>
+            </div>
+          ) : shipmentsArray.length === 0 ? (
+            <div className="text-center py-20">
+              <Package className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-800 mb-1">
+                Belum ada data pengiriman
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Silakan tambahkan pengiriman baru untuk mulai mengelola
+                pengiriman Anda
+              </p>
+              <Button
+                className="bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white shadow-sm px-4"
+                asChild
+              >
+                <Link to="/shipments/new">+ Pengiriman Baru</Link>
+              </Button>
             </div>
           ) : (
             <Table>
@@ -624,7 +398,7 @@ const ShipmentList = ({
                       colSpan={10}
                       className="text-center py-10 text-gray-500"
                     >
-                      Tidak ada data pengiriman
+                      Tidak ada data pengiriman yang sesuai dengan filter
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -769,12 +543,13 @@ const ShipmentList = ({
 
       {showUpdateStatus && selectedShipment && (
         <UpdateStatusModal
-          shipment={selectedShipment}
+          isOpen={showUpdateStatus}
           onClose={() => {
             setShowUpdateStatus(false);
             setSelectedShipment(null);
           }}
-          onUpdate={onUpdateStatus}
+          shipment={selectedShipment}
+          onSuccess={handleStatusUpdated}
         />
       )}
 

@@ -218,17 +218,22 @@ const ShipmentService = {
   },
 
   // Mengupdate status pengiriman
-  updateShipmentStatus: async (id, status) => {
+  updateShipmentStatus: async (id, status, description, date) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/functions/v1/shipment/status?id=${id}`,
+        `${API_BASE_URL}/functions/v1/shipment_status`,
         {
-          method: "PATCH",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-          body: JSON.stringify({ status }),
+          body: JSON.stringify({
+            status: status,
+            description: description,
+            date: date,
+            shipment_id: id,
+          }),
         }
       );
 
@@ -413,10 +418,13 @@ const Shipments = () => {
                     refetchActive()
                   )
                 }
-                onUpdateStatus={(id, status) =>
-                  ShipmentService.updateShipmentStatus(id, status).then(() =>
-                    refetchActive()
-                  )
+                onUpdateStatus={(id, status, description, date) =>
+                  ShipmentService.updateShipmentStatus(
+                    id,
+                    status,
+                    description,
+                    date
+                  ).then(() => refetchActive())
                 }
                 onDelete={(id) =>
                   ShipmentService.deleteShipment(id).then(() => refetchActive())
