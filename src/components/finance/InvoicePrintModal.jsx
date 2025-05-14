@@ -12,9 +12,9 @@ const InvoiceContent = forwardRef(({ bill, paymentHistory = [] }, ref) => {
 
   // Status badge
   const getStatusBadge = (status) => {
-    if (status === "paid") return <Badge className="pointer-events-none bg-green-100 text-green-700 border-green-200">Lunas</Badge>;
-    if (status === "partial") return <Badge className="pointer-events-none bg-yellow-100 text-yellow-700 border-yellow-200">Sebagian</Badge>;
-    return <Badge className="pointer-events-none bg-[#FF6B2C]/10 text-[#FF6B2C] border-[#FF6B2C]/20">Belum Lunas</Badge>;
+    if (status === "paid") return <span style={{background:'#d1fae5',color:'#047857',padding:'2px 8px',borderRadius:4,fontSize:11}}>Lunas</span>;
+    if (status === "partial") return <span style={{background:'#fef9c3',color:'#b45309',padding:'2px 8px',borderRadius:4,fontSize:11}}>Sebagian</span>;
+    return <span style={{background:'#fff7ed',color:'#ea580c',padding:'2px 8px',borderRadius:4,fontSize:11}}>Belum Lunas</span>;
   };
 
   // Tabel barang (dummy jika tidak ada)
@@ -30,111 +30,118 @@ const InvoiceContent = forwardRef(({ bill, paymentHistory = [] }, ref) => {
   return (
     <div
       ref={ref}
-      className="invoice-a4"
       style={{
         width: '210mm',
         height: '297mm',
-        maxWidth: '100%',
-        minHeight: '297mm',
         background: '#fff',
         boxSizing: 'border-box',
-        padding: '20px',
+        padding: '16px',
+        fontSize: '12px',
+        fontFamily: 'Arial, sans-serif',
+        color: '#222',
         margin: 0,
         borderRadius: 0,
         boxShadow: 'none',
         overflow: 'hidden',
-        fontSize: '13px',
-        fontFamily: 'Arial, sans-serif'
+        display: 'block'
       }}
     >
       {/* Header Logo dan Judul */}
-      <div className="flex items-start justify-between mb-6 border-b pb-4">
-        <img src={logoUrl} alt="Logo Silogistik" className="h-14 w-auto" />
-        <div className="text-right">
-          <h2 className="text-2xl font-bold text-[#0C4A6E]">INVOICE</h2>
-          <div className="text-sm text-gray-500">No. Resi: <span className="font-semibold text-[#0C4A6E]">{bill.tracking_number}</span></div>
-        </div>
-      </div>
-
-      {/* Info Tanggal & Status */}
-      <div className="flex items-center gap-8 mb-6">
-        <div className="text-sm text-gray-600">Tanggal Invoice: <span className="font-semibold">{formatDate(bill.created_at || bill.date)}</span></div>
-        <div className="text-sm text-gray-600">Status: {getStatusBadge(bill.payment_status)}</div>
-      </div>
-
-      {/* Info Pengirim & Penerima */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        <div>
-          <div className="font-semibold text-[#0C4A6E] mb-1">Pengirim</div>
-          <div className="text-sm text-gray-700">{bill.sender_name}</div>
-          <div className="text-xs text-gray-500">{bill.sender_address}</div>
-          <div className="text-xs text-gray-500">{bill.sender_phone}</div>
-        </div>
-        <div>
-          <div className="font-semibold text-[#0C4A6E] mb-1">Penerima</div>
-          <div className="text-sm text-gray-700">{bill.recipient_name}</div>
-          <div className="text-xs text-gray-500">{bill.recipient_address}</div>
-          <div className="text-xs text-gray-500">{bill.recipient_phone}</div>
-        </div>
-      </div>
-
-      {/* Tabel Barang */}
-      <div className="mb-6">
-        <div className="font-semibold text-[#0C4A6E] mb-2">Detail Barang</div>
-        <table className="w-full border text-sm mb-2">
-          <thead>
-            <tr className="bg-gray-50">
-              <th className="border px-2 py-1">Nama Barang</th>
-              <th className="border px-2 py-1">Berat (kg)</th>
-              <th className="border px-2 py-1">Qty</th>
+      <table style={{ width: '100%' }}>
+        <tbody>
+          <tr>
+            <td style={{ width: '50%' }}>
+              <img src={logoUrl} alt="Logo Silogistik" style={{ height: 40 }} />
+              <div style={{fontSize:10, color:'#0C4A6E', fontWeight:600, marginTop:2}}>Mudah, Cepat, Terintegrasi.</div>
+            </td>
+            <td style={{ textAlign: 'right', verticalAlign: 'top' }}>
+              <div style={{ fontWeight: 'bold', fontSize: 20, color: '#0C4A6E' }}>INVOICE</div>
+              <div style={{ fontSize: 12, color: '#888' }}>No. Resi: <span style={{ color: '#0C4A6E', fontWeight: 600 }}>{bill.tracking_number}</span></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <hr style={{ margin: '12px 0' }} />
+      <table style={{ width: '100%', marginBottom: 8 }}>
+        <tbody>
+          <tr>
+            <td style={{ fontSize: 12 }}>Tanggal Invoice: <b>{formatDate(bill.created_at || bill.date)}</b></td>
+            <td style={{ textAlign: 'right', fontSize: 12 }}>Status: {getStatusBadge(bill.payment_status)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <table style={{ width: '100%', marginBottom: 8 }}>
+        <tbody>
+          <tr>
+            <td style={{ verticalAlign: 'top', width: '50%' }}>
+              <div style={{ fontWeight: 600, color: '#0C4A6E', marginBottom: 2 }}>Pengirim</div>
+              <div style={{ fontSize: 12 }}>{bill.sender_name}</div>
+              <div style={{ fontSize: 11, color: '#555' }}>{bill.sender_address}</div>
+              <div style={{ fontSize: 11, color: '#555' }}>{bill.sender_phone}</div>
+            </td>
+            <td style={{ verticalAlign: 'top', width: '50%' }}>
+              <div style={{ fontWeight: 600, color: '#0C4A6E', marginBottom: 2 }}>Penerima</div>
+              <div style={{ fontSize: 12 }}>{bill.recipient_name}</div>
+              <div style={{ fontSize: 11, color: '#555' }}>{bill.recipient_address}</div>
+              <div style={{ fontSize: 11, color: '#555' }}>{bill.recipient_phone}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div style={{ fontWeight: 600, color: '#0C4A6E', margin: '12px 0 4px 0' }}>Detail Barang</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 12 }}>
+        <thead>
+          <tr style={{ background: '#f3f4f6' }}>
+            <th style={{ border: '1px solid #e5e7eb', padding: '4px 8px', fontWeight: 600, fontSize: 12 }}>Nama Barang</th>
+            <th style={{ border: '1px solid #e5e7eb', padding: '4px 8px', fontWeight: 600, fontSize: 12 }}>Berat (kg)</th>
+            <th style={{ border: '1px solid #e5e7eb', padding: '4px 8px', fontWeight: 600, fontSize: 12 }}>Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item, idx) => (
+            <tr key={idx}>
+              <td style={{ border: '1px solid #e5e7eb', padding: '4px 8px' }}>{item.name}</td>
+              <td style={{ border: '1px solid #e5e7eb', padding: '4px 8px' }}>{item.weight}</td>
+              <td style={{ border: '1px solid #e5e7eb', padding: '4px 8px' }}>{item.qty || 1}</td>
             </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => (
-              <tr key={idx}>
-                <td className="border px-2 py-1">{item.name}</td>
-                <td className="border px-2 py-1">{item.weight}</td>
-                <td className="border px-2 py-1">{item.qty || 1}</td>
+          ))}
+        </tbody>
+      </table>
+      <div style={{ fontWeight: 600, color: '#0C4A6E', margin: '12px 0 4px 0' }}>Riwayat Pembayaran</div>
+      {payments.length === 0 ? (
+        <div style={{ color: '#888', fontStyle: 'italic', fontSize: 12 }}>Belum ada transaksi pembayaran</div>
+      ) : (
+        <>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 8 }}>
+            <thead>
+              <tr style={{ background: '#f3f4f6' }}>
+                <th style={{ border: '1px solid #e5e7eb', padding: '4px 8px', fontWeight: 600, fontSize: 12 }}>Tanggal</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '4px 8px', fontWeight: 600, fontSize: 12 }}>Metode</th>
+                <th style={{ border: '1px solid #e5e7eb', padding: '4px 8px', fontWeight: 600, fontSize: 12 }}>Jumlah</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Tabel Transaksi Pembayaran */}
-      <div className="mb-6">
-        <div className="font-semibold text-[#0C4A6E] mb-2">Riwayat Pembayaran</div>
-        {payments.length === 0 ? (
-          <div className="text-gray-400 italic text-sm">Belum ada transaksi pembayaran</div>
-        ) : (
-          <>
-            <table className="w-full border text-sm mb-2">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="border px-2 py-1">Tanggal</th>
-                  <th className="border px-2 py-1">Metode</th>
-                  <th className="border px-2 py-1">Jumlah</th>
+            </thead>
+            <tbody>
+              {payments.map((p, idx) => (
+                <tr key={idx}>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '4px 8px' }}>{formatDate(p.date)}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '4px 8px' }}>{p.method}</td>
+                  <td style={{ border: '1px solid #e5e7eb', padding: '4px 8px' }}>Rp {p.amount.toLocaleString("id-ID")}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {payments.map((p, idx) => (
-                  <tr key={idx}>
-                    <td className="border px-2 py-1">{formatDate(p.date)}</td>
-                    <td className="border px-2 py-1">{p.method}</td>
-                    <td className="border px-2 py-1">Rp {p.amount.toLocaleString("id-ID")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="flex justify-end text-sm font-semibold mt-2">
-              Total Dibayar: <span className="ml-2 text-green-700">Rp {totalPaid.toLocaleString("id-ID")}</span>
-            </div>
-            <div className="flex justify-end text-sm font-semibold mt-1">
-              Sisa Tagihan: <span className="ml-2 text-red-700">Rp {(bill.final_shipping_cost - totalPaid).toLocaleString("id-ID")}</span>
-            </div>
-          </>
-        )}
-      </div>
+              ))}
+            </tbody>
+          </table>
+          <table style={{ width: '100%' }}>
+            <tbody>
+              <tr>
+                <td style={{ textAlign: 'right', fontWeight: 600, fontSize: 12, color: '#047857' }}>Total Dibayar: Rp {totalPaid.toLocaleString("id-ID")}</td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: 'right', fontWeight: 600, fontSize: 12, color: '#dc2626' }}>Sisa Tagihan: Rp {(bill.final_shipping_cost - totalPaid).toLocaleString("id-ID")}</td>
+              </tr>
+            </tbody>
+          </table>
+        </>
+      )}
     </div>
   );
 });
