@@ -4,7 +4,6 @@ import { Banknote, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import TransactionList from "@/components/finance/TransactionList";
-import DebtList from "@/components/finance/DebtList";
 import FinancialReport from "@/components/finance/FinancialReport";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -199,7 +198,7 @@ const Finance = () => {
               <FinancialReport />
             </TabsContent>
             <TabsContent value="transactions" className="mt-0">
-              <TransactionList />
+              <TransactionList shipments={shipmentsData?.data || []} />
             </TabsContent>
             <TabsContent value="bills" className="mt-0">
               <BillList

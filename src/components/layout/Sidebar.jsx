@@ -21,19 +21,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const [userRoleId, setUserRoleId] = useState(null);
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState([]);
-  const [tenantInfo, setTenantInfo] = useState([]);
-  // Effect untuk mendapatkan role_id dari localStorage
+  const [userInfo, setUserInfo] = useState({});
+  const [tenantInfo, setTenantInfo] = useState({});
+
   useEffect(() => {
     try {
-      const userRoleId = localStorage.getItem("role"); // Jika role undefined, diisi 1
-      const userInfo = localStorage.getItem("user");
-      const tenantInfo = localStorage.getItem("tenant_info");
+      const userRoleId = localStorage.getItem("role") || ""; 
+      const userInfoStr = localStorage.getItem("user") || "{}";
+      const tenantInfoStr = localStorage.getItem("tenant_info") || "{}";
+      
       setUserRoleId(userRoleId);
-      setUserInfo(JSON.parse(userInfo));
-      setTenantInfo(JSON.parse(tenantInfo));
+      setUserInfo(JSON.parse(userInfoStr));
+      setTenantInfo(JSON.parse(tenantInfoStr));
     } catch (error) {
-      console.error("Error parsing tenant info:", error);
+      console.error("Error parsing user/tenant info:", error);
+      // Set nilai default jika terjadi error
+      setUserInfo({});
+      setTenantInfo({});
     }
   }, []);
 
@@ -48,6 +52,11 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       icon: <Banknote size={20} />,
       label: "Manajemen Ongkir",
       path: "/shipping-rates",
+    },
+    {
+      icon: <Wallet size={20} />,
+      label: "Manajemen Keuangan",
+      path: "/finance",
     },
   ];
 
@@ -121,16 +130,18 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
             <Avatar>
               <AvatarImage src={""} />
               <AvatarFallback>
-                {userInfo.full_name
-                  ? userInfo.full_name?.charAt(0)
-                  : tenantInfo.name?.charAt(0)}
+                {userInfo?.full_name
+                  ? userInfo.full_name.charAt(0)
+                  : tenantInfo?.name
+                  ? tenantInfo.name.charAt(0)
+                  : "U"}
               </AvatarFallback>
             </Avatar>
           </div>
           {!collapsed && (
             <div className="flex flex-col">
               <span className="font-medium">
-                {userRoleId === "1" ? tenantInfo.name : userInfo.full_name}
+                {userRoleId === "1" ? tenantInfo?.name || "Tenant" : userInfo?.full_name || "User"}
               </span>
               <span className="text-xs text-[#0C4A6E]/70">
                 {userRoleId === "1"
@@ -141,7 +152,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                   ? "Kurir"
                   : userRoleId === "4"
                   ? "Marketing"
-                  : userInfo.email}
+                  : userInfo?.email || ""}
               </span>
             </div>
           )}
