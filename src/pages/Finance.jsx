@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import BillList from "@/components/finance/BillList";
 import { VITE_SUPABASE_URL } from "../utils/apiConfig";
 
-const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
+const API_BASE_URL = VITE_SUPABASE_URL;
 
 // API Service untuk Shipment
 const ShipmentService = {

@@ -21,7 +21,7 @@ import {
 import { toast } from "react-hot-toast";
 import { VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY } from "@/utils/apiConfig";
 
-const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
+const API_BASE_URL = VITE_SUPABASE_URL;
 
 const UpdateStatusModal = ({ isOpen, onClose, shipment, onSuccess }) => {
   const [selectedStatus, setSelectedStatus] = useState("");

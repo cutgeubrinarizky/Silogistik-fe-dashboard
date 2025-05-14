@@ -7,11 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-import {
-  VITE_SUPABASE_ANON_KEY,
-  VITE_SUPABASE_URL,
-  VITE_SUPABASE_SERVICE_ROLE_KEY,
-} from "../utils/apiConfig";
+import { VITE_SUPABASE_ANON_KEY, VITE_SUPABASE_URL } from "../utils/apiConfig";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -37,9 +33,9 @@ const Login = () => {
 
     setIsLoading(true);
 
-    //login supabase
+    // login supabase
     try {
-      const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
+      const API_BASE_URL = VITE_SUPABASE_URL;
 
       const response = await fetch(
         `${API_BASE_URL}/auth/v1/token?grant_type=password`,
@@ -94,7 +90,7 @@ const Login = () => {
   };
 
   //   try {
-  //     const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
+  //     const API_BASE_URL = VITE_SUPABASE_URL;
 
   //     const response = await fetch(`${API_BASE_URL}/functions/v1/auth/login`, {
   //       method: "POST",
@@ -123,6 +119,22 @@ const Login = () => {
   //       const expiresAt = new Date().getTime() + data.data.expires_in * 1000;
   //       localStorage.setItem("expires_at", expiresAt.toString());
   //     }
+
+  //     // Tambahkan data user jika ada
+  //     if (data.data.tenant_info) {
+  //       localStorage.setItem(
+  //         "tenant_info",
+  //         JSON.stringify(data.data.tenant_info)
+  //       );
+  //     }
+  //     if (data.data.user) {
+  //       const roleId = data.data.user.user_metadata.role_id || 1;
+  //       const userInfo = data.data.user.user_metadata;
+  //       localStorage.setItem("role", JSON.stringify(roleId));
+  //       localStorage.setItem("user", JSON.stringify(userInfo));
+  //     }
+
+  //     toast.success("Login berhasil");
 
   //     // Tambahkan data user jika ada
   //     if (data.data.tenant_info) {

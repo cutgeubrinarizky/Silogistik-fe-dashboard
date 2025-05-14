@@ -1,3 +1,4 @@
 export const VITE_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bmVrZGx3aGNybm93Z2NjdGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MTA0NDMsImV4cCI6MjA2MjI4NjQ0M30.wJ_Jf3U38ACqYUMzyu1Iwjuk3031UoO_Pbk6dOKj3RI';
 export const VITE_SUPABASE_URL = 'https://aznekdlwhcrnowgcctgw.supabase.co';
-export const VITE_SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bmVrZGx3aGNybm93Z2NjdGd3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjcxMDQ0MywiZXhwIjoyMDYyMjg2NDQzfQ.gLcAm3NZKf8BXt9fhY4BOuys-XzTsyvwU1wricL01VU';
+// export const VITE_SUPABASE_URL = "http://localhost:54321";
+
