@@ -9,8 +9,9 @@ import FinancialReport from "@/components/finance/FinancialReport";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import BillList from "@/components/finance/BillList";
+import { VITE_SUPABASE_URL } from "../utils/apiConfig";
 
-const API_BASE_URL = import.meta.env.VITE_SUPABASE_URL || "http://localhost:54321";
+const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
 
 // API Service untuk Shipment
 const ShipmentService = {
@@ -107,14 +108,17 @@ const Finance = () => {
   const handleUpdatePayment = async (id, updateData) => {
     try {
       // Implementasi update pembayaran ke API
-      const response = await fetch(`${API_BASE_URL}/functions/v1/shipment/${id}/payment`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-        body: JSON.stringify(updateData),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/functions/v1/shipment/${id}/payment`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Gagal mengupdate pembayaran");
@@ -210,4 +214,4 @@ const Finance = () => {
   );
 };
 
-export default Finance; 
+export default Finance;

@@ -16,24 +16,30 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const [userRoleId, setUserRoleId] = useState(null);
   const navigate = useNavigate();
-
+  const [userInfo, setUserInfo] = useState([]);
+  const [tenantInfo, setTenantInfo] = useState([]);
   // Effect untuk mendapatkan role_id dari localStorage
   useEffect(() => {
     try {
+      const userRoleId = localStorage.getItem("role"); // Jika role undefined, diisi 1
+      const userInfo = localStorage.getItem("user");
       const tenantInfo = localStorage.getItem("tenant_info");
-      if (tenantInfo) {
-        const parsedInfo = JSON.parse(tenantInfo);
-        setUserRoleId(parsedInfo.role_id);
-      }
+      setUserRoleId(userRoleId);
+      setUserInfo(JSON.parse(userInfo));
+      setTenantInfo(JSON.parse(tenantInfo));
     } catch (error) {
       console.error("Error parsing tenant info:", error);
     }
   }, []);
 
+  useEffect(() => {
+    console.log(userInfo);
+  }, [userInfo]);
   // Menu item untuk semua user
   const baseNavItems = [
     { icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/" },
@@ -61,7 +67,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   // Gabungkan menu item sesuai dengan role
   const navItems = [
     ...baseNavItems,
-    ...(userRoleId === 1 || userRoleId === 2 ? adminNavItems : []),
+    ...(userRoleId === "1" || userRoleId === 2 ? adminNavItems : []),
   ];
 
   return (
@@ -112,13 +118,30 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       <div className="absolute bottom-4 w-full px-4">
         <div className="flex items-center gap-3 p-2">
           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-            A
+            <Avatar>
+              <AvatarImage src={""} />
+              <AvatarFallback>
+                {userInfo.full_name
+                  ? userInfo.full_name?.charAt(0)
+                  : tenantInfo.name?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-medium">Admin User</span>
+              <span className="font-medium">
+                {userRoleId === "1" ? tenantInfo.name : userInfo.full_name}
+              </span>
               <span className="text-xs text-[#0C4A6E]/70">
-                admin@cargopilot.com
+                {userRoleId === "1"
+                  ? "Super Admin"
+                  : userRoleId === "2"
+                  ? "Admin"
+                  : userRoleId === "3"
+                  ? "Kurir"
+                  : userRoleId === "4"
+                  ? "Marketing"
+                  : userInfo.email}
               </span>
             </div>
           )}

@@ -1,7 +1,7 @@
 /**
  * File ini berisi fungsi-fungsi untuk membantu penanganan autentikasi
  */
-
+import { VITE_SUPABASE_URL } from "./apiConfig";
 /**
  * Memeriksa apakah pengguna sudah login
  * @returns {boolean} - true jika pengguna sudah login
@@ -59,8 +59,8 @@ export const refreshToken = async () => {
   }
   
   try {
-    const API_BASE_URL = import.meta.env.VITE_SUPABASE_URL || "http://localhost:54321";
-    
+    const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
+
     const response = await fetch(`${API_BASE_URL}/auth/v1/token?grant_type=refresh_token`, {
       method: "POST",
       headers: {

@@ -44,12 +44,11 @@ import {
 } from "lucide-react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { VITE_SUPABASE_URL } from "../../utils/apiConfig";
 // Volume calculation constants
 const DEFAULT_DIVISOR = 6000;
 
-const API_BASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || "http://localhost:54321";
+const API_BASE_URL = VITE_SUPABASE_URL;
 
 // Import API service
 const ShipmentService = {

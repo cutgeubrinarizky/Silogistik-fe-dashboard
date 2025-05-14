@@ -42,7 +42,10 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import {
+  VITE_SUPABASE_ANON_KEY,
+  VITE_SUPABASE_URL,
+} from "../../utils/apiConfig";
 // Sample data
 const initialAdmins = [
   {
@@ -606,8 +609,7 @@ const EmployeeList = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const API_BASE_URL =
-    import.meta.env.VITE_SUPABASE_URL || "http://localhost:54321";
+  const API_BASE_URL = VITE_SUPABASE_URL;
   const navigate = useNavigate();
   useEffect(() => {
     fetchUsers();

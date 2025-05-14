@@ -42,10 +42,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
+import { VITE_SUPABASE_URL } from "../utils/apiConfig";
 // Definisi API service
-const API_BASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || "http://localhost:54321";
+const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
 
 // API service untuk cities
 const CitiesService = {

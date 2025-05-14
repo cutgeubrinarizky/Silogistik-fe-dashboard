@@ -38,8 +38,9 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { VITE_SUPABASE_URL } from "../../utils/apiConfig";
 
-const API_BASE_URL = import.meta.env.VITE_SUPABASE_URL || "http://localhost:54321";
+const API_BASE_URL = VITE_SUPABASE_URL || "http://localhost:54321";
 
 // API Service untuk Shipment
 const ShipmentService = {
@@ -264,12 +265,20 @@ const TransactionList = () => {
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
-      transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.tracking_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.recipient_name.toLowerCase().includes(searchQuery.toLowerCase());
+      transaction.description
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      transaction.tracking_number
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      transaction.recipient_name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
     const matchesType = filterType === "all" || transaction.type === filterType;
-    const matchesCategory = filterCategory === "all" || transaction.category === filterCategory;
-    const matchesStatus = filterStatus === "all" || transaction.status === filterStatus;
+    const matchesCategory =
+      filterCategory === "all" || transaction.category === filterCategory;
+    const matchesStatus =
+      filterStatus === "all" || transaction.status === filterStatus;
     return matchesSearch && matchesType && matchesCategory && matchesStatus;
   });
 
@@ -506,4 +515,4 @@ const TransactionList = () => {
   );
 };
 
-export default TransactionList; 
+export default TransactionList;

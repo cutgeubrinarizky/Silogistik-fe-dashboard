@@ -17,30 +17,32 @@ const Header = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("User");
   const [userInitials, setUserInitials] = useState("U");
+  const [userInfo, setUserInfo] = useState({});
+  const [tenantInfo, setTenantInfo] = useState({});
+  const [userRoleId, setUserRoleId] = useState(null);
 
   useEffect(() => {
     // Coba dapatkan data user dari localStorage
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        if (userData.user_metadata?.full_name) {
-          setUserName(userData.user_metadata.full_name);
+    const storedTenant = localStorage.getItem("tenant_info");
+    const userRoleId = localStorage.getItem("role");
+    setUserRoleId(userRoleId);
 
-          // Buat inisial dari nama
-          const names = userData.user_metadata.full_name.split(" ");
-          if (names.length > 1) {
-            setUserInitials(`${names[0][0]}${names[1][0]}`);
-          } else if (names.length === 1) {
-            setUserInitials(names[0][0]);
-          }
-        } else if (userData.email) {
-          setUserName(userData.email);
-          setUserInitials(userData.email[0]);
-        }
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
+    // Mengambil data tenant dan user
+    const userData = storedUser ? JSON.parse(storedUser) : {};
+    const tenantData = storedTenant ? JSON.parse(storedTenant) : {};
+
+    setUserInfo(userData);
+    setTenantInfo(tenantData);
+
+    if (userData.full_name) {
+      setUserName(userData.full_name);
+      // Buat inisial dari nama
+      const names = userData.full_name.split(" ");
+      setUserInitials(names[0][0]);
+    } else if (tenantData.name) {
+      setUserName(tenantData.name);
+      setUserInitials(tenantData.name[0]);
     }
   }, []);
 
@@ -90,7 +92,15 @@ const Header = ({ onMenuClick }) => {
                 <p className="font-medium text-sm text-[#0C4A6E]">{userName}</p>
                 <p className="w-[200px] truncate text-xs text-[#0C4A6E]/70">
                   {/* Tambahkan detail yang sesuai, misalnya: */}
-                  Administrator
+                  {userRoleId === "1"
+                    ? "Super Admin"
+                    : userRoleId === "2"
+                    ? "Admin"
+                    : userRoleId === "3"
+                    ? "Kurir"
+                    : userRoleId === "4"
+                    ? "Marketing"
+                    : userInfo.role_id}
                 </p>
               </div>
             </div>
