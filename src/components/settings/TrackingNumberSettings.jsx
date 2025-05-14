@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -54,84 +54,92 @@ const TrackingNumberSettings = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Format Nomor Resi</CardTitle>
-        <CardDescription>
-          Atur format nomor resi otomatis untuk pengiriman
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-8">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-medium">Daftar Prefix</h3>
-          </div>
-          <div className="space-y-4">
-            {prefixes.map((prefix) => (
-              <div key={prefix.id} className="flex items-center justify-between p-3 border rounded-md">
-                <div>
-                  <div className="font-medium">
-                    {prefix.prefix}
-                    + {prefix.startNumber}
+    <div className="space-y-6">
+      <Card className="border-none shadow-none">
+        <CardContent className="p-0">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium text-[#0C4A6E]">Daftar Prefix</h3>
+                <p className="text-sm text-[#0C4A6E]/70 mt-1">
+                  Atur format nomor resi otomatis untuk pengiriman
+                </p>
+              </div>
+              <div className="space-y-4">
+                {prefixes.map((prefix) => (
+                  <div key={prefix.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-[#FF6B2C]/50 transition-colors">
+                    <div>
+                      <div className="font-medium text-[#0C4A6E]">
+                        {prefix.prefix}
+                        + {prefix.startNumber}
+                      </div>
+                      <div className="text-sm text-[#0C4A6E]/70">
+                        Contoh: {prefix.prefix}{prefix.startNumber}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          checked={prefix.active} 
+                          onCheckedChange={() => handleToggleActive(prefix.id)}
+                          id={`active-${prefix.id}`}
+                          className="data-[state=checked]:bg-[#FF6B2C]"
+                        />
+                        <Label htmlFor={`active-${prefix.id}`} className="text-[#0C4A6E]">
+                          {prefix.active ? 'Aktif' : 'Nonaktif'}
+                        </Label>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => handleDeletePrefix(prefix.id)}
+                        className="text-[#0C4A6E] hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Contoh: {prefix.prefix}{prefix.startNumber}
-                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-[#0C4A6E] mb-4">Tambah Prefix Baru</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="prefix" className="text-[#0C4A6E]">Prefix</Label>
+                  <Input 
+                    id="prefix"
+                    value={newPrefix} 
+                    onChange={(e) => setNewPrefix(e.target.value)} 
+                    placeholder="Contoh, JKT" 
+                    maxLength={5}
+                    className="border-gray-200 focus:border-[#FF6B2C] focus:ring-[#FF6B2C]/20"
+                  />
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      checked={prefix.active} 
-                      onCheckedChange={() => handleToggleActive(prefix.id)}
-                      id={`active-${prefix.id}`}
-                    />
-                    <Label htmlFor={`active-${prefix.id}`}>
-                      {prefix.active ? 'Aktif' : 'Nonaktif'}
-                    </Label>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="startNumber" className="text-[#0C4A6E]">Nomor Awal</Label>
+                  <Input 
+                    id="startNumber"
+                    value={newStartNumber} 
+                    onChange={(e) => setNewStartNumber(e.target.value)} 
+                    placeholder="Contoh: 00001"
+                    className="border-gray-200 focus:border-[#FF6B2C] focus:ring-[#FF6B2C]/20"
+                  />
+                </div>
+                <div className="flex items-end">
                   <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => handleDeletePrefix(prefix.id)}
+                    onClick={handleAddPrefix}
+                    className="bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Plus className="mr-2 h-4 w-4" /> Tambah Prefix
                   </Button>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <h3 className="text-lg font-medium mb-4">Tambah Prefix Baru</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="prefix">Prefix</Label>
-              <Input 
-                id="prefix"
-                value={newPrefix} 
-                onChange={(e) => setNewPrefix(e.target.value)} 
-                placeholder="Contoh, JKT" 
-                maxLength={5}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="startNumber">Nomor Awal</Label>
-              <Input 
-                id="startNumber"
-                value={newStartNumber} 
-                onChange={(e) => setNewStartNumber(e.target.value)} 
-                placeholder="Contoh: 00001" 
-              />
-            </div>
-            <div className="flex items-end">
-              <Button onClick={handleAddPrefix}>
-                <Plus className="mr-2 h-4 w-4" /> Tambah Prefix
-              </Button>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

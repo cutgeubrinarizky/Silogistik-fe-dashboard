@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import ShippingRates from "./pages/ShippingRates";
 import Finance from "./pages/Finance";
 import Login from "./pages/Login";
+import CompanyProfile from "./pages/CompanyProfile";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => {
           <Routes>
             {/* Rute publik */}
             <Route path="/login" element={<Login />} />
+            <Route path="/company-profile" element={<CompanyProfile />} />
 
             {/* Rute terproteksi */}
             <Route
