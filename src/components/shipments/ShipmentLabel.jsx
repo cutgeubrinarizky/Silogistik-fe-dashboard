@@ -77,6 +77,10 @@ const ShipmentLabel = ({ shipment, onClose }) => {
     }
   };
 
+  const labelData = {
+    weight: shipment.weight || shipment.total_weight || shipment.total_chargeable_weight || '0',
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -84,17 +88,15 @@ const ShipmentLabel = ({ shipment, onClose }) => {
           <h2 className="text-2xl font-bold text-[#0C4A6E]">Preview Label</h2>
           <div className="flex gap-2">
             <Button
-              variant="outline"
               size="sm"
-              className="flex items-center gap-2 hover:bg-[#FF6B2C] hover:text-white transition-colors"
+              className="flex items-center gap-2 bg-[#FF6B2C] text-white hover:bg-[#FF6B2C]/90"
               onClick={handlePrint}
             >
               <Printer className="h-4 w-4" /> Cetak
             </Button>
             <Button
-              variant="outline"
               size="sm"
-              className="flex items-center gap-2 hover:bg-[#0C4A6E] hover:text-white transition-colors"
+              className="flex items-center gap-2 bg-[#0C4A6E] text-white hover:bg-[#0C4A6E]/90"
               onClick={handleDownload}
             >
               <Download className="h-4 w-4" /> Unduh PDF
@@ -163,9 +165,7 @@ const ShipmentLabel = ({ shipment, onClose }) => {
               </div>
               <div>
                 <span className="text-gray-500">Berat:</span>
-                <span className="font-semibold ml-1">
-                  {shipment.items.reduce((sum, item) => sum + (Number(item.weight) * Number(item.quantity)), 0)} kg
-                </span>
+                <span className="ml-1 font-medium">{labelData.weight} kg</span>
               </div>
             </div>
           </div>
