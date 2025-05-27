@@ -348,12 +348,12 @@ const ShipmentList = ({
                 Silakan tambahkan pengiriman baru untuk mulai mengelola
                 pengiriman Anda
               </p>
-              <Button
+              {/* <Button
                 className="bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white shadow-sm px-4"
                 asChild
               >
                 <Link to="/shipments/new">+ Pengiriman Baru</Link>
-              </Button>
+              </Button> */}
             </div>
           ) : (
             <Table>
