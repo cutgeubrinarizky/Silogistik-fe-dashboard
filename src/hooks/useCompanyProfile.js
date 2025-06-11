@@ -1,24 +1,47 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY } from '../utils/apiConfig';
 
 export const useCompanyProfile = () => {
   const [showModal, setShowModal] = useState(false);
   const [companyData, setCompanyData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   // Cek apakah data perusahaan sudah diisi
   const checkCompanyProfile = async () => {
     try {
       setIsLoading(true);
-      // TODO: Implementasi API call untuk mengecek data perusahaan
-      const response = await fetch('/api/company-profile');
-      const data = await response.json();
-
-      if (!data || !data.companyName) {
+      
+      const API_BASE_URL = VITE_SUPABASE_URL;
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        console.error('Token tidak ditemukan');
         return false;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/functions/v1/auth/checkCompanyProfile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Gagal memeriksa data perusahaan');
+      }
+      
+      const data = await response.json();
+      console.log('Response checkCompanyProfile:', data);
+      
+      // Periksa nilai hasCompanyProfile sesuai format response
+      if (data.hasCompanyProfile === null) {
+        return false; // Tidak ada profil perusahaan, perlu dibuat
+      } else if (data.hasCompanyProfile === 1) {
+        return true; // Profil perusahaan sudah ada
       } else {
-        setCompanyData(data);
-        return true;
+        return false; // Default jika format tidak sesuai
       }
     } catch (error) {
       console.error('Error checking company profile:', error);
@@ -32,11 +55,19 @@ export const useCompanyProfile = () => {
   // Simpan data perusahaan
   const saveCompanyProfile = async (data) => {
     try {
-      // TODO: Implementasi API call untuk menyimpan data
-      const response = await fetch('/api/company-profile', {
+      const API_BASE_URL = VITE_SUPABASE_URL;
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        console.error('Token tidak ditemukan');
+        return false;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/functions/v1/company/saveProfile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -45,7 +76,8 @@ export const useCompanyProfile = () => {
         throw new Error('Gagal menyimpan data perusahaan');
       }
 
-      setCompanyData(data);
+      const responseData = await response.json();
+      setCompanyData(responseData);
       toast.success('Data perusahaan berhasil disimpan');
       return true;
     } catch (error) {
@@ -58,11 +90,19 @@ export const useCompanyProfile = () => {
   // Update data perusahaan
   const updateCompanyProfile = async (data) => {
     try {
-      // TODO: Implementasi API call untuk update data
-      const response = await fetch('/api/company-profile', {
+      const API_BASE_URL = VITE_SUPABASE_URL;
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        console.error('Token tidak ditemukan');
+        return false;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/functions/v1/company/updateProfile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -71,7 +111,8 @@ export const useCompanyProfile = () => {
         throw new Error('Gagal mengupdate data perusahaan');
       }
 
-      setCompanyData(data);
+      const responseData = await response.json();
+      setCompanyData(responseData);
       toast.success('Data perusahaan berhasil diupdate');
       return true;
     } catch (error) {

@@ -26,10 +26,10 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
   useEffect(() => {
     try {
-      const userRoleId = localStorage.getItem("role") || ""; 
+      const userRoleId = localStorage.getItem("role") || "";
       const userInfoStr = localStorage.getItem("user") || "{}";
       const tenantInfoStr = localStorage.getItem("tenant_info") || "{}";
-      
+
       setUserRoleId(userRoleId);
       setUserInfo(JSON.parse(userInfoStr));
       setTenantInfo(JSON.parse(tenantInfoStr));
@@ -53,11 +53,11 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       label: "Manajemen Ongkir",
       path: "/shipping-rates",
     },
-    {
-      icon: <Wallet size={20} />,
-      label: "Manajemen Keuangan",
-      path: "/finance",
-    },
+    // {
+    //   icon: <Wallet size={20} />,
+    //   label: "Manajemen Keuangan",
+    //   path: "/finance",
+    // },
   ];
 
   // Menu item hanya untuk admin (role_id 1 atau 2)
@@ -66,6 +66,11 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       icon: <Users size={20} />,
       label: "Manajemen Pegawai",
       path: "/employees",
+    },
+    {
+      icon: <Wallet size={20} />,
+      label: "Manajemen Keuangan",
+      path: "/finance",
     },
     { icon: <FileText size={20} />, label: "Label & Invoice", path: "/labels" },
     { icon: <BarChart size={20} />, label: "Laporan", path: "/reports" },
@@ -141,7 +146,9 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           {!collapsed && (
             <div className="flex flex-col">
               <span className="font-medium">
-                {userRoleId === "1" ? tenantInfo?.name || "Tenant" : userInfo?.full_name || "User"}
+                {userRoleId === "1"
+                  ? tenantInfo?.name || "Tenant"
+                  : userInfo?.full_name || "User"}
               </span>
               <span className="text-xs text-[#0C4A6E]/70">
                 {userRoleId === "1"
