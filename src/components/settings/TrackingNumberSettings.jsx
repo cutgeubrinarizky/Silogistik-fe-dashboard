@@ -9,8 +9,7 @@ import { toast } from 'sonner';
 
 // Sample prefix data
 const initialPrefixes = [
-  { id: 1, prefix: 'CGO', startNumber: '00001', active: true },
-  { id: 2, prefix: 'JKT', startNumber: '10000', active: false },
+  { id: 1, prefix: 'JKT', startNumber: '00001', active: true },
 ];
 
 const TrackingNumberSettings = () => {
